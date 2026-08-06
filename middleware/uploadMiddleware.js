@@ -1,0 +1,97 @@
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// Ensure upload directories exist
+const pptDir = path.join(__dirname, '../uploads/ppt');
+const screenshotDir = path.join(__dirname, '../uploads/screenshots');
+
+if (!fs.existsSync(pptDir)) {
+  fs.mkdirSync(pptDir, { recursive: true });
+}
+if (!fs.existsSync(screenshotDir)) {
+  fs.mkdirSync(screenshotDir, { recursive: true });
+}
+
+// Storage engine
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    if (file.fieldname === 'pptFile') {
+      cb(null, pptDir);
+    } else if (file.fieldname === 'eurekaScreenshot') {
+      cb(null, screenshotDir);
+    } else {
+      cb(new Error('Invalid field name for file upload'));
+    }
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+  }
+});
+
+// File filter
+const fileFilter = (req, file, cb) => {
+  const ext = path.extname(file.originalname).toLowerCase();
+
+  if (file.fieldname === 'pptFile') {
+    const allowedExtensions = ['.ppt', '.pptx'];
+    if (allowedExtensions.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only .ppt and .pptx files are allowed for PPT upload!'), false);
+    }
+  } else if (file.fieldname === 'eurekaScreenshot') {
+    const allowedExtensions = ['.png', '.jpg', '.jpeg', '.pdf'];
+    if (allowedExtensions.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only .png, .jpg, .jpeg, and .pdf files are allowed for Eureka Screenshot!'), false);
+    }
+  } else {
+    cb(new Error('Unexpected file field'), false);
+  }
+};
+
+// Multer upload instances
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 20 * 1024 * 1024 // 20MB limit (individual checks enforced per field)
+  }
+});
+
+// Specific fields middleware
+const uploadTeamFiles = upload.fields([
+  { name: 'pptFile', maxCount: 1 },
+  { name: 'eurekaScreenshot', maxCount: 1 }
+]);
+
+// Wrapper middleware to handle size limits per field cleanly
+const uploadMiddleware = (req, res, next) => {
+  uploadTeamFiles(req, res, function (err) {
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ success: false, message: 'File size exceeds maximum limit (PPT: max 20MB, Screenshot: max 10MB).' });
+      }
+      return res.status(400).json({ success: false, message: `Upload error: ${err.message}` });
+    } else if (err) {
+      return res.status(400).json({ success: false, message: err.message });
+    }
+
+    // Secondary file size verification
+    if (req.files) {
+      if (req.files.eurekaScreenshot && req.files.eurekaScreenshot[0].size > 10 * 1024 * 1024) {
+        return res.status(400).json({ success: false, message: 'Eureka Screenshot exceeds 10MB limit!' });
+      }
+      if (req.files.pptFile && req.files.pptFile[0].size > 20 * 1024 * 1024) {
+        return res.status(400).json({ success: false, message: 'PPT File exceeds 20MB limit!' });
+      }
+    }
+    next();
+  });
+};
+
+module.exports = uploadMiddleware;

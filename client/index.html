@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Startup Pitching Competition 2026 | E-Cell</title>
+  <meta name="description" content="Official registration portal for Intra-College Startup Pitching Competition organized by Entrepreneurship Development Cell (E-Cell).">
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="brand">
+        <div class="brand-icon">E</div>
+        <div class="brand-text">
+          <h1>E-CELL</h1>
+          <span>Startup Pitch 2026</span>
+        </div>
+      </a>
+      <nav class="nav-links">
+        <button class="nav-btn active" id="tab-register-btn" onclick="switchTab('register')">
+          <i class="fa-solid fa-pen-to-square"></i> Register
+        </button>
+        <button class="nav-btn" id="tab-status-btn" onclick="switchTab('status')">
+          <i class="fa-solid fa-magnifying-glass"></i> Check Status
+        </button>
+        <a href="/api/teams/template" class="nav-btn" download>
+          <i class="fa-solid fa-download"></i> PPT Template
+        </a>
+        <a href="admin.html" class="nav-btn">
+          <i class="fa-solid fa-user-shield"></i> Admin Portal
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="container" style="padding-top: 30px; padding-bottom: 60px;">
+
+    <!-- Hero Header -->
+    <section class="hero-section">
+      <h1 class="hero-title">Intra-College Startup Pitching Competition</h1>
+      <p class="hero-subtitle">Organized by Entrepreneurship Development Cell (E-Cell). Turn your revolutionary idea into reality and compete for prize pools & mentorship.</p>
+      <div class="hero-badges">
+        <span class="hero-badge"><i class="fa-solid fa-user-graduate"></i> Only 2nd & 3rd Year Students</span>
+        <span class="hero-badge"><i class="fa-solid fa-users"></i> Team Size: 1 to 3 Members</span>
+        <span class="hero-badge"><i class="fa-solid fa-shield-halved"></i> Verification Required</span>
+      </div>
+    </section>
+
+    <!-- SECTION 1: REGISTRATION TAB -->
+    <div id="view-register" class="tab-view active">
+      
+      <!-- MANDATORY EUREKA REGISTRATION CALLOUT CARD -->
+      <div class="glass-card eureka-card">
+        <div class="card-header" style="border-bottom: none; margin-bottom: 12px; padding-bottom: 0;">
+          <h2 style="color: var(--accent-cyan);">
+            <i class="fa-solid fa-triangle-exclamation"></i> IMPORTANT: Mandatory Pre-Registration Step
+          </h2>
+          <span class="eureka-badge">Step 1 Required</span>
+        </div>
+        <p style="font-size: 15px; color: var(--text-primary); margin-bottom: 12px;">
+          BEFORE submitting your competition registration, every team <strong>MUST</strong> first register for the <strong>Eureka Competition</strong>.
+        </p>
+        <p style="font-size: 14px; color: var(--text-secondary);">
+          During Eureka registration, when prompted with the question <strong style="color: #ffffff;">"Where did you find about us?"</strong>, you MUST enter our exact NEC ID:
+        </p>
+
+        <div class="nec-code-box">
+          <span class="nec-code" id="nec-id-text">NEC2621509</span>
+          <button type="button" class="btn-copy" onclick="copyNecId()">
+            <i class="fa-regular fa-copy"></i> Copy NEC ID
+          </button>
+        </div>
+
+        <p style="font-size: 13px; color: var(--accent-amber); font-weight: 500;">
+          <i class="fa-solid fa-circle-info"></i> After completing Eureka registration, take a screenshot clearly showing the NEC ID and upload it below. Registration cannot be completed without this screenshot!
+        </p>
+      </div>
+
+      <!-- STUDENT REGISTRATION FORM -->
+      <form id="registration-form" onsubmit="handleRegistrationSubmit(event)" enctype="multipart/form-data">
+        
+        <!-- Team Information Card -->
+        <div class="glass-card">
+          <div class="card-header">
+            <h2><i class="fa-solid fa-people-group"></i> Team Information</h2>
+          </div>
+          <div class="form-grid full">
+            <div class="form-group">
+              <label for="teamName">Team Name <span class="required">*</span></label>
+              <input type="text" id="teamName" name="teamName" placeholder="e.g. Quantum Tech Creators" required>
+            </div>
+          </div>
+        </div>
+
+        <!-- Leader Details Card -->
+        <div class="glass-card">
+          <div class="card-header">
+            <h2><i class="fa-solid fa-user-astronaut"></i> Team Leader Details</h2>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="leaderName">Full Name <span class="required">*</span></label>
+              <input type="text" id="leaderName" name="leaderName" placeholder="John Doe" required>
+            </div>
+            <div class="form-group">
+              <label for="leaderRegNo">Register Number <span class="required">*</span></label>
+              <input type="text" id="leaderRegNo" name="leaderRegNo" placeholder="e.g. 2112001" required>
+            </div>
+            <div class="form-group">
+              <label for="leaderDept">Department <span class="required">*</span></label>
+              <select id="leaderDept" name="leaderDept" required>
+                <option value="">-- Select Department --</option>
+                <option value="Computer Science & Engineering">Computer Science & Engineering</option>
+                <option value="Artificial Intelligence & Data Science">Artificial Intelligence & Data Science</option>
+                <option value="Information Technology">Information Technology</option>
+                <option value="Electronics & Communication">Electronics & Communication</option>
+                <option value="Electrical & Electronics">Electrical & Electronics</option>
+                <option value="Mechanical Engineering">Mechanical Engineering</option>
+                <option value="Civil Engineering">Civil Engineering</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="leaderYear">Year <span class="required">*</span></label>
+              <select id="leaderYear" name="leaderYear" required>
+                <option value="">-- Select Year --</option>
+                <option value="2nd Year">2nd Year</option>
+                <option value="3rd Year">3rd Year</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="leaderEmail">Email Address <span class="required">*</span></label>
+              <input type="email" id="leaderEmail" name="leaderEmail" placeholder="john.doe@example.com" required>
+            </div>
+            <div class="form-group">
+              <label for="leaderPhone">Phone Number <span class="required">*</span></label>
+              <input type="tel" id="leaderPhone" name="leaderPhone" placeholder="9876543210" required>
+            </div>
+          </div>
+        </div>
+
+        <!-- Team Members (Optional: Member 2 & Member 3) -->
+        <div class="glass-card">
+          <div class="card-header">
+            <h2><i class="fa-solid fa-users-viewfinder"></i> Team Members (Optional)</h2>
+            <div style="display: flex; gap: 10px;">
+              <button type="button" class="btn-secondary" id="add-member2-btn" onclick="toggleMember(2, true)">
+                <i class="fa-solid fa-plus"></i> Add Member 2
+              </button>
+              <button type="button" class="btn-secondary" id="add-member3-btn" onclick="toggleMember(3, true)" style="display: none;">
+                <i class="fa-solid fa-plus"></i> Add Member 3
+              </button>
+            </div>
+          </div>
+
+          <!-- Member 2 Section -->
+          <div id="member2-section" style="display: none; padding-top: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <h3 style="font-size: 16px; color: var(--accent-cyan);">Member 2 Details</h3>
+              <button type="button" class="btn-secondary" style="padding: 4px 12px; font-size: 12px;" onclick="toggleMember(2, false)">
+                <i class="fa-solid fa-trash"></i> Remove
+              </button>
+            </div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="member2Name">Name</label>
+                <input type="text" id="member2Name" name="member2Name" placeholder="Member Name">
+              </div>
+              <div class="form-group">
+                <label for="member2RegNo">Register Number</label>
+                <input type="text" id="member2RegNo" name="member2RegNo" placeholder="Register Number">
+              </div>
+              <div class="form-group">
+                <label for="member2Dept">Department</label>
+                <select id="member2Dept" name="member2Dept">
+                  <option value="">-- Select Department --</option>
+                  <option value="Computer Science & Engineering">Computer Science & Engineering</option>
+                  <option value="Artificial Intelligence & Data Science">Artificial Intelligence & Data Science</option>
+                  <option value="Information Technology">Information Technology</option>
+                  <option value="Electronics & Communication">Electronics & Communication</option>
+                  <option value="Electrical & Electronics">Electrical & Electronics</option>
+                  <option value="Mechanical Engineering">Mechanical Engineering</option>
+                  <option value="Civil Engineering">Civil Engineering</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="member2Year">Year</label>
+                <select id="member2Year" name="member2Year">
+                  <option value="">-- Select Year --</option>
+                  <option value="2nd Year">2nd Year</option>
+                  <option value="3rd Year">3rd Year</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Member 3 Section -->
+          <div id="member3-section" style="display: none; padding-top: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <h3 style="font-size: 16px; color: var(--accent-cyan);">Member 3 Details</h3>
+              <button type="button" class="btn-secondary" style="padding: 4px 12px; font-size: 12px;" onclick="toggleMember(3, false)">
+                <i class="fa-solid fa-trash"></i> Remove
+              </button>
+            </div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="member3Name">Name</label>
+                <input type="text" id="member3Name" name="member3Name" placeholder="Member Name">
+              </div>
+              <div class="form-group">
+                <label for="member3RegNo">Register Number</label>
+                <input type="text" id="member3RegNo" name="member3RegNo" placeholder="Register Number">
+              </div>
+              <div class="form-group">
+                <label for="member3Dept">Department</label>
+                <select id="member3Dept" name="member3Dept">
+                  <option value="">-- Select Department --</option>
+                  <option value="Computer Science & Engineering">Computer Science & Engineering</option>
+                  <option value="Artificial Intelligence & Data Science">Artificial Intelligence & Data Science</option>
+                  <option value="Information Technology">Information Technology</option>
+                  <option value="Electronics & Communication">Electronics & Communication</option>
+                  <option value="Electrical & Electronics">Electrical & Electronics</option>
+                  <option value="Mechanical Engineering">Mechanical Engineering</option>
+                  <option value="Civil Engineering">Civil Engineering</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="member3Year">Year</label>
+                <select id="member3Year" name="member3Year">
+                  <option value="">-- Select Year --</option>
+                  <option value="2nd Year">2nd Year</option>
+                  <option value="3rd Year">3rd Year</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Startup Pitch Details Card -->
+        <div class="glass-card">
+          <div class="card-header">
+            <h2><i class="fa-solid fa-lightbulb"></i> Startup Pitch Details</h2>
+          </div>
+          <div class="form-grid full">
+            <div class="form-group">
+              <label for="innovationDomain">Innovation Domain <span class="required">*</span></label>
+              <select id="innovationDomain" name="innovationDomain" required>
+                <option value="">-- Select Domain --</option>
+                <option value="AI">AI</option>
+                <option value="Healthcare">Healthcare</option>
+                <option value="Agriculture">Agriculture</option>
+                <option value="Cybersecurity">Cybersecurity</option>
+                <option value="Education">Education</option>
+                <option value="IoT">IoT</option>
+                <option value="Robotics">Robotics</option>
+                <option value="FinTech">FinTech</option>
+                <option value="Others">Others</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="problemStatement">Problem Statement <span class="required">*</span></label>
+              <textarea id="problemStatement" name="problemStatement" placeholder="Describe the real-world problem your startup aims to solve..." required></textarea>
+            </div>
+            <div class="form-group">
+              <label for="abstract">
+                <span>Abstract <span class="required">*</span></span>
+                <span class="word-count" id="abstract-word-count">0 / 300 words</span>
+              </label>
+              <textarea id="abstract" name="abstract" placeholder="Provide a concise abstract of your startup idea (Maximum 300 words)..." oninput="handleAbstractWordCount()" required></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- File Uploads Card -->
+        <div class="glass-card">
+          <div class="card-header">
+            <h2><i class="fa-solid fa-cloud-arrow-up"></i> Document & Verification Uploads</h2>
+          </div>
+          <div class="form-grid">
+            
+            <!-- Upload PPT -->
+            <div class="form-group">
+              <label>Upload Presentation PPT <span class="required">*</span></label>
+              <div class="upload-dropzone" id="ppt-dropzone" onclick="document.getElementById('pptFile').click()">
+                <i class="fa-solid fa-file-powerpoint upload-icon"></i>
+                <div class="upload-text">Click or Drag & Drop PPT File</div>
+                <div class="upload-hint">Allowed: .ppt, .pptx (Max 20MB)</div>
+                <input type="file" id="pptFile" name="pptFile" accept=".ppt,.pptx" style="display:none;" onchange="handleFileSelect(this, 'ppt-preview', 20)">
+              </div>
+              <div id="ppt-preview"></div>
+            </div>
+
+            <!-- Upload Eureka Screenshot -->
+            <div class="form-group">
+              <label>Upload Eureka Screenshot <span class="required">*</span></label>
+              <div class="upload-dropzone" id="screenshot-dropzone" onclick="document.getElementById('eurekaScreenshot').click()">
+                <i class="fa-solid fa-file-image upload-icon"></i>
+                <div class="upload-text">Click or Drag Screenshot Proof</div>
+                <div class="upload-hint">Allowed: .png, .jpg, .jpeg, .pdf (Max 10MB)</div>
+                <input type="file" id="eurekaScreenshot" name="eurekaScreenshot" accept=".png,.jpg,.jpeg,.pdf" style="display:none;" onchange="handleFileSelect(this, 'screenshot-preview', 10)">
+              </div>
+              <div id="screenshot-preview"></div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Declaration & Submit Card -->
+        <div class="glass-card">
+          <div class="form-group" style="margin-bottom: 24px;">
+            <label class="checkbox-group">
+              <input type="checkbox" id="declarationConfirmed" name="declarationConfirmed" value="true" required>
+              <span style="font-size: 14px; color: var(--text-primary);">
+                "We confirm that the submitted idea is original and complies with the competition guidelines."
+              </span>
+            </label>
+          </div>
+
+          <button type="submit" class="btn-primary" id="submit-btn">
+            <i class="fa-solid fa-paper-plane"></i> Submit Registration
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- SECTION 2: STATUS CHECK TAB -->
+    <div id="view-status" class="tab-view" style="display: none;">
+      <div class="glass-card">
+        <div class="card-header">
+          <h2><i class="fa-solid fa-magnifying-glass"></i> Check Application Status</h2>
+        </div>
+        <p style="color: var(--text-secondary); margin-bottom: 20px;">
+          Enter the Leader's Email Address or Register Number used during registration to verify your application status.
+        </p>
+        <div style="display: flex; gap: 12px; max-width: 600px; margin-bottom: 24px;">
+          <input type="text" id="status-search-input" placeholder="e.g. john.doe@example.com or 2112001" style="flex: 1;">
+          <button type="button" class="btn-primary" style="width: auto; padding: 0 24px;" onclick="checkApplicationStatus()">
+            Search Status
+          </button>
+        </div>
+
+        <!-- Status Result Output Container -->
+        <div id="status-result-container"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Submission Success Modal -->
+  <div class="modal-overlay" id="success-modal">
+    <div class="modal-container" style="max-width: 500px; text-align: center;">
+      <div style="font-size: 56px; color: var(--accent-emerald); margin-bottom: 16px;">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <h2 style="font-size: 24px; margin-bottom: 12px;">Registration Submitted!</h2>
+      <p style="color: var(--text-secondary); font-size: 15px; margin-bottom: 20px;" id="success-modal-message">
+        Your team registration has been recorded successfully. Status is currently Pending Verification by the admin.
+      </p>
+      <button class="btn-primary" onclick="closeSuccessModal()">
+        Got It
+      </button>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

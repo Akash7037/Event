@@ -1,0 +1,7 @@
+node_modules/
+uploads/ppt/*
+!uploads/ppt/.gitkeep
+uploads/screenshots/*
+!uploads/screenshots/.gitkeep
+.env
+*.log

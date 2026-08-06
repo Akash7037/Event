@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Portal | Startup Pitching Competition 2026</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- Admin Navbar -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="admin.html" class="brand">
+        <div class="brand-icon" style="background: var(--gradient-accent);">A</div>
+        <div class="brand-text">
+          <h1>ADMIN PORTAL</h1>
+          <span>Startup Pitching 2026</span>
+        </div>
+      </a>
+      <div class="nav-links" id="admin-nav-actions" style="display: none;">
+        <span style="font-size: 14px; color: var(--text-secondary);" id="admin-user-display">
+          <i class="fa-solid fa-user-shield"></i> Admin
+        </span>
+        <a href="index.html" class="nav-btn">
+          <i class="fa-solid fa-house"></i> Student Portal
+        </a>
+        <button class="nav-btn" onclick="handleAdminLogout()">
+          <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding-top: 30px; padding-bottom: 60px;">
+
+    <!-- VIEW 1: ADMIN LOGIN SCREEN -->
+    <div id="admin-login-view" style="max-width: 440px; margin: 40px auto 0;">
+      <div class="glass-card">
+        <div class="card-header" style="text-align: center; display: block; border-bottom: none; margin-bottom: 12px;">
+          <div class="brand-icon" style="width: 56px; height: 56px; margin: 0 auto 16px; font-size: 26px; background: var(--gradient-accent);">
+            <i class="fa-solid fa-lock"></i>
+          </div>
+          <h2 style="font-size: 24px;">Admin Portal Login</h2>
+          <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">Enter credentials to access competition verification dashboard</p>
+        </div>
+
+        <form id="admin-login-form" onsubmit="handleAdminLogin(event)">
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label for="adminUsername">Username or Email</label>
+            <input type="text" id="adminUsername" placeholder="admin@ecell.edu" required>
+          </div>
+          <div class="form-group" style="margin-bottom: 24px;">
+            <label for="adminPassword">Password</label>
+            <input type="password" id="adminPassword" placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="btn-primary" id="login-submit-btn">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i> Login to Dashboard
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- VIEW 2: ADMIN DASHBOARD SCREEN -->
+    <div id="admin-dashboard-view" style="display: none;">
+
+      <!-- STATISTICS GRID -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon total"><i class="fa-solid fa-users"></i></div>
+          <div class="stat-info">
+            <h3 id="stat-total">0</h3>
+            <span>Total Registrations</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon pending"><i class="fa-solid fa-clock"></i></div>
+          <div class="stat-info">
+            <h3 id="stat-pending">0</h3>
+            <span>Pending Approval</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon approved"><i class="fa-solid fa-circle-check"></i></div>
+          <div class="stat-info">
+            <h3 id="stat-approved">0</h3>
+            <span>Approved Teams</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon rejected"><i class="fa-solid fa-circle-xmark"></i></div>
+          <div class="stat-info">
+            <h3 id="stat-rejected">0</h3>
+            <span>Rejected Teams</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEARCH & FILTER TOOLBAR -->
+      <div class="glass-card" style="padding: 20px; margin-bottom: 20px;">
+        <div class="form-grid" style="grid-template-columns: repeat(4, 1fr); gap: 14px;">
+          <div class="form-group">
+            <label for="filter-search">Search</label>
+            <input type="text" id="filter-search" placeholder="Team / Leader Name / Reg No..." oninput="loadTeamsData()">
+          </div>
+          <div class="form-group">
+            <label for="filter-status">Status</label>
+            <select id="filter-status" onchange="loadTeamsData()">
+              <option value="All">All Statuses</option>
+              <option value="Pending Verification">Pending Verification</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="filter-dept">Department</label>
+            <select id="filter-dept" onchange="loadTeamsData()">
+              <option value="All">All Departments</option>
+              <option value="Computer Science & Engineering">Computer Science & Engineering</option>
+              <option value="Artificial Intelligence & Data Science">Artificial Intelligence & Data Science</option>
+              <option value="Information Technology">Information Technology</option>
+              <option value="Electronics & Communication">Electronics & Communication</option>
+              <option value="Electrical & Electronics">Electrical & Electronics</option>
+              <option value="Mechanical Engineering">Mechanical Engineering</option>
+              <option value="Civil Engineering">Civil Engineering</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="filter-year">Year</label>
+            <select id="filter-year" onchange="loadTeamsData()">
+              <option value="All">All Years</option>
+              <option value="2nd Year">2nd Year</option>
+              <option value="3rd Year">3rd Year</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- TEAMS SUBMISSIONS DATA TABLE -->
+      <div class="glass-card" style="padding: 0; overflow: hidden;">
+        <div class="card-header" style="padding: 20px 24px; margin-bottom: 0;">
+          <h2><i class="fa-solid fa-list-check"></i> Submissions List</h2>
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <span style="font-size: 13px; color: var(--text-secondary);" id="teams-count-label">Showing 0 teams</span>
+            <button type="button" class="btn-success" style="padding: 8px 16px; font-size: 13px;" onclick="exportRegistrationsCsv()">
+              <i class="fa-solid fa-file-csv"></i> Export Data (CSV)
+            </button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Team Name</th>
+                <th>Leader Details</th>
+                <th>Dept / Year</th>
+                <th>Domain</th>
+                <th>Submitted Date</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="teams-table-body">
+              <tr>
+                <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 40px;">
+                  Loading registrations...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- TEAM DETAILS MODAL -->
+  <div class="modal-overlay" id="team-details-modal">
+    <div class="modal-container">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 20px;">
+        <h2 style="font-size: 22px;" id="modal-team-title">Team Verification Details</h2>
+        <button class="file-remove" onclick="closeTeamDetailsModal()" style="font-size: 22px;">&times;</button>
+      </div>
+      
+      <div id="modal-team-content"></div>
+
+      <!-- Action Buttons -->
+      <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 28px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+        <button type="button" class="btn-secondary" onclick="closeTeamDetailsModal()">Close</button>
+        <button type="button" class="btn-danger" id="modal-reject-btn" onclick="openRejectReasonModal()">
+          <i class="fa-solid fa-xmark"></i> Reject Team
+        </button>
+        <button type="button" class="btn-success" id="modal-approve-btn" onclick="handleApproveTeam()">
+          <i class="fa-solid fa-check"></i> Approve Team
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REJECTION REASON MODAL -->
+  <div class="modal-overlay" id="reject-reason-modal" style="z-index: 1100;">
+    <div class="modal-container" style="max-width: 500px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 16px;">
+        <h3 style="font-size: 18px; color: var(--accent-rose);">Enter Rejection Reason</h3>
+        <button class="file-remove" onclick="closeRejectReasonModal()">&times;</button>
+      </div>
+      <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
+        State why this application is rejected (e.g., missing NEC ID in screenshot, illegible file, ineligible year, etc.). This reason will be emailed to the team leader.
+      </p>
+      <div class="form-group" style="margin-bottom: 20px;">
+        <textarea id="rejection-reason-text" placeholder="e.g. Eureka registration screenshot does not show NEC ID (NEC2621509)." required></textarea>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button type="button" class="btn-secondary" onclick="closeRejectReasonModal()">Cancel</button>
+        <button type="button" class="btn-danger" onclick="confirmRejectTeam()">Confirm Rejection</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/admin.js"></script>
+</body>
+</html>
