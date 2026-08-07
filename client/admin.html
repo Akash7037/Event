@@ -483,16 +483,16 @@
   </div>
 
   <!-- Floating Mobile Bottom Navigation Bar -->
-  <div class="mobile-bottom-nav">
-    <button class="mobile-nav-btn" onclick="openQrScannerModal()" style="color: var(--accent-emerald);">
+  <div class="mobile-bottom-nav" id="admin-mobile-nav">
+    <button class="mobile-nav-btn admin-auth-only" onclick="openQrScannerModal()" style="color: var(--accent-emerald);">
       <i class="fa-solid fa-qrcode" style="color: var(--accent-emerald);"></i>
       <span>Scan QR</span>
     </button>
     <a href="index.html" class="mobile-nav-btn">
       <i class="fa-solid fa-house"></i>
-      <span>Portal</span>
+      <span>Student Portal</span>
     </a>
-    <button class="mobile-nav-btn" onclick="openEditCredentialsModal()">
+    <button class="mobile-nav-btn admin-auth-only" onclick="openEditCredentialsModal()">
       <i class="fa-solid fa-user-gear"></i>
       <span>Creds</span>
     </button>
@@ -500,7 +500,7 @@
       <i class="fa-solid fa-moon"></i>
       <span>Theme</span>
     </button>
-    <button class="mobile-nav-btn" onclick="handleAdminLogout()">
+    <button class="mobile-nav-btn admin-auth-only" onclick="handleAdminLogout()">
       <i class="fa-solid fa-right-from-bracket"></i>
       <span>Logout</span>
     </button>

@@ -145,35 +145,60 @@ function switchTab(tabName) {
 }
 
 // Dynamic Team Member Toggles
+function updateAddMemberButtonVisibility() {
+  const sec2 = document.getElementById('member2-section');
+  const sec3 = document.getElementById('member3-section');
+  const addBtn = document.getElementById('add-member-btn');
+
+  if (!addBtn) return;
+
+  const isSec2Visible = sec2 && sec2.style.display !== 'none';
+  const isSec3Visible = sec3 && sec3.style.display !== 'none';
+
+  if (isSec2Visible && isSec3Visible) {
+    addBtn.style.display = 'none';
+  } else {
+    addBtn.style.display = 'inline-flex';
+  }
+}
+
+function addNextMember() {
+  const sec2 = document.getElementById('member2-section');
+  const sec3 = document.getElementById('member3-section');
+
+  if (!sec2 || sec2.style.display === 'none') {
+    toggleMember(2, true);
+  } else if (!sec3 || sec3.style.display === 'none') {
+    toggleMember(3, true);
+  }
+}
+
 function toggleMember(memberNum, show) {
   const sec = document.getElementById(`member${memberNum}-section`);
-  const addBtn2 = document.getElementById('add-member2-btn');
-  const addBtn3 = document.getElementById('add-member3-btn');
+  if (!sec) return;
 
   if (show) {
     sec.style.display = 'block';
-    if (memberNum === 2) {
-      addBtn2.style.display = 'none';
-      addBtn3.style.display = 'inline-flex';
-    } else if (memberNum === 3) {
-      addBtn3.style.display = 'none';
-    }
   } else {
     sec.style.display = 'none';
     // Clear fields
-    document.getElementById(`member${memberNum}Name`).value = '';
-    document.getElementById(`member${memberNum}RegNo`).value = '';
-    document.getElementById(`member${memberNum}Dept`).value = '';
-    document.getElementById(`member${memberNum}Year`).value = '';
+    const nameEl = document.getElementById(`member${memberNum}Name`);
+    const regEl = document.getElementById(`member${memberNum}RegNo`);
+    const deptEl = document.getElementById(`member${memberNum}Dept`);
+    const yearEl = document.getElementById(`member${memberNum}Year`);
+
+    if (nameEl) nameEl.value = '';
+    if (regEl) regEl.value = '';
+    if (deptEl) deptEl.value = '';
+    if (yearEl) yearEl.value = '';
 
     if (memberNum === 2) {
-      addBtn2.style.display = 'inline-flex';
-      // If member 2 removed, also hide member 3
+      // If member 2 removed, also hide and clear member 3
       toggleMember(3, false);
-    } else if (memberNum === 3) {
-      addBtn3.style.display = 'inline-flex';
     }
   }
+
+  updateAddMemberButtonVisibility();
 }
 
 // Abstract Live Word Count Calculator

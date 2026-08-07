@@ -86,6 +86,11 @@ function showLoginView() {
   document.getElementById('admin-login-view').style.display = 'flex';
   document.getElementById('admin-dashboard-view').style.display = 'none';
   document.getElementById('admin-nav-actions').style.display = 'none';
+
+  // Hide admin-only mobile navigation buttons when unauthenticated
+  document.querySelectorAll('.admin-auth-only').forEach(el => {
+    el.style.display = 'none';
+  });
 }
 
 function showDashboardView() {
@@ -99,6 +104,11 @@ function showDashboardView() {
   document.getElementById('admin-login-view').style.display = 'none';
   document.getElementById('admin-dashboard-view').style.display = 'block';
   document.getElementById('admin-nav-actions').style.display = 'flex';
+
+  // Show admin-only mobile navigation buttons when authenticated
+  document.querySelectorAll('.admin-auth-only').forEach(el => {
+    el.style.display = 'flex';
+  });
 
   const savedAdminUser = localStorage.getItem('adminUser') || 'Admin';
   document.getElementById('admin-user-display').innerHTML = `<i class="fa-solid fa-user-shield"></i> ${savedAdminUser}`;
