@@ -838,20 +838,47 @@ function closeImageLightbox(event) {
    ========================================================================== */
 let html5QrCodeScanner = null;
 
+function switchScannerTab(tabName) {
+  const cameraView = document.getElementById('scanner-view-camera');
+  const uploadView = document.getElementById('scanner-view-upload');
+  const manualView = document.getElementById('scanner-view-manual');
+  
+  const tabCamera = document.getElementById('scanner-tab-camera');
+  const tabUpload = document.getElementById('scanner-tab-upload');
+  const tabManual = document.getElementById('scanner-tab-manual');
+
+  if (tabCamera) tabCamera.classList.remove('active');
+  if (tabUpload) tabUpload.classList.remove('active');
+  if (tabManual) tabManual.classList.remove('active');
+
+  if (cameraView) cameraView.style.display = 'none';
+  if (uploadView) uploadView.style.display = 'none';
+  if (manualView) manualView.style.display = 'none';
+
+  if (tabName === 'camera') {
+    if (tabCamera) tabCamera.classList.add('active');
+    if (cameraView) cameraView.style.display = 'block';
+    startLiveQrScanner();
+  } else if (tabName === 'upload') {
+    if (tabUpload) tabUpload.classList.add('active');
+    if (uploadView) uploadView.style.display = 'block';
+    stopLiveQrScanner();
+  } else if (tabName === 'manual') {
+    if (tabManual) tabManual.classList.add('active');
+    if (manualView) manualView.style.display = 'block';
+    stopLiveQrScanner();
+  }
+}
+
 function openQrScannerModal() {
   const modal = document.getElementById('qr-scanner-modal');
   const resultBox = document.getElementById('qr-scan-result');
-  const readerContainer = document.getElementById('qr-reader-container');
   if (!modal) return;
-
-  if (readerContainer) {
-    readerContainer.innerHTML = `<div id="qr-reader" style="width: 100%;"></div>`;
-  }
 
   modal.classList.add('active');
   if (resultBox) resultBox.style.display = 'none';
 
-  startLiveQrScanner();
+  switchScannerTab('camera');
 }
 
 function closeQrScannerModal() {
@@ -862,44 +889,88 @@ function closeQrScannerModal() {
   stopLiveQrScanner();
 }
 
-function startLiveQrScanner() {
-  const readerElement = document.getElementById('qr-reader');
-  if (!readerElement) return;
+async function startLiveQrScanner() {
+  const container = document.getElementById('qr-reader-container');
+  if (!container) return;
 
   stopLiveQrScanner();
+  container.innerHTML = `<div id="qr-reader" style="width: 100%;"></div>`;
 
   if (typeof Html5Qrcode === 'undefined') {
-    document.getElementById('qr-reader-container').innerHTML = `
+    container.innerHTML = `
       <div style="padding: 24px; color: var(--text-primary); font-size: 13px; text-align: center;">
         <i class="fa-solid fa-camera" style="font-size: 32px; margin-bottom: 8px; color: var(--accent-terracotta);"></i>
-        <p>Live camera scanner ready. Enter Register Number manually below or scan using phone camera.</p>
+        <p style="margin-bottom: 8px;">Scanner library loading...</p>
+        <p style="color: var(--text-secondary); font-size: 12px;">Use <strong>Upload Photo</strong> or <strong>Reg No</strong> tabs to verify tickets instantly!</p>
       </div>
     `;
     return;
   }
 
-  html5QrCodeScanner = new Html5Qrcode('qr-reader');
-  const config = { fps: 10, qrbox: { width: 220, height: 220 } };
-
-  html5QrCodeScanner.start(
-    { facingMode: 'environment' },
-    config,
-    (decodedText) => {
-      handleQrCodeScanned(decodedText);
-    },
-    (errorMessage) => {
-      // Ignore scanning frame errors
+  try {
+    const devices = await Html5Qrcode.getCameras();
+    if (!devices || devices.length === 0) {
+      container.innerHTML = `
+        <div style="padding: 24px; color: var(--text-primary); font-size: 13px; text-align: center;">
+          <i class="fa-solid fa-camera-retro" style="font-size: 32px; margin-bottom: 8px; color: var(--accent-amber);"></i>
+          <p style="margin-bottom: 6px; font-weight: 700;">No camera device detected.</p>
+          <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 10px;">Use <strong>Upload Photo</strong> or <strong>Reg No</strong> tab to verify tickets!</p>
+          <button type="button" class="btn-secondary" style="padding: 6px 14px; font-size: 12px;" onclick="switchScannerTab('upload')">
+            <i class="fa-solid fa-image"></i> Upload QR Photo
+          </button>
+        </div>
+      `;
+      return;
     }
-  ).catch(err => {
-    console.warn('Camera access notice:', err);
-    document.getElementById('qr-reader-container').innerHTML = `
-      <div style="padding: 24px; color: var(--text-primary); font-size: 13px; text-align: center;">
-        <i class="fa-solid fa-camera" style="font-size: 32px; margin-bottom: 8px; color: var(--accent-terracotta);"></i>
-        <p style="margin-bottom: 8px;">Camera offline or browser permission needed.</p>
-        <p style="color: var(--text-secondary); font-size: 12px;">You can type Leader Register Number manually below to verify entry!</p>
-      </div>
-    `;
-  });
+
+    // Smart Camera Selection: Prefer environment (rear) camera on mobile, or first available camera on laptop
+    let cameraId = devices[0].id;
+    const backCamera = devices.find(device => 
+      device.label.toLowerCase().includes('back') || 
+      device.label.toLowerCase().includes('environment') ||
+      device.label.toLowerCase().includes('rear')
+    );
+    if (backCamera) {
+      cameraId = backCamera.id;
+    }
+
+    html5QrCodeScanner = new Html5Qrcode('qr-reader');
+    const config = { fps: 10, qrbox: { width: 220, height: 220 } };
+
+    await html5QrCodeScanner.start(
+      cameraId,
+      config,
+      (decodedText) => {
+        handleQrCodeScanned(decodedText);
+      },
+      (errorMessage) => {
+        // Frame scanning error ignore
+      }
+    );
+
+  } catch (err) {
+    console.warn('Camera start warning:', err);
+    try {
+      html5QrCodeScanner = new Html5Qrcode('qr-reader');
+      await html5QrCodeScanner.start(
+        { facingMode: 'user' },
+        { fps: 10, qrbox: { width: 220, height: 220 } },
+        (decodedText) => { handleQrCodeScanned(decodedText); },
+        (err) => {}
+      );
+    } catch(err2) {
+      container.innerHTML = `
+        <div style="padding: 24px; color: var(--text-primary); font-size: 13px; text-align: center;">
+          <i class="fa-solid fa-video-slash" style="font-size: 32px; margin-bottom: 8px; color: var(--accent-rose);"></i>
+          <p style="margin-bottom: 6px; font-weight: 700;">Camera Permission Needed</p>
+          <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 10px;">Please allow camera permissions in your browser address bar.</p>
+          <button type="button" class="btn-secondary" style="padding: 6px 14px; font-size: 12px;" onclick="switchScannerTab('upload')">
+            <i class="fa-solid fa-image"></i> Switch to Upload Photo
+          </button>
+        </div>
+      `;
+    }
+  }
 }
 
 function stopLiveQrScanner() {
@@ -911,6 +982,41 @@ function stopLiveQrScanner() {
       }).catch(e => { html5QrCodeScanner = null; });
     } catch(e) {
       html5QrCodeScanner = null;
+    }
+  }
+}
+
+// Scan QR Code from uploaded image file
+async function scanSelectedQrImage(fileInput) {
+  if (!fileInput.files || fileInput.files.length === 0) return;
+  const file = fileInput.files[0];
+
+  const resultBox = document.getElementById('qr-scan-result');
+  if (resultBox) {
+    resultBox.style.display = 'block';
+    resultBox.innerHTML = `
+      <div style="text-align: center; color: var(--text-secondary); padding: 10px;">
+        <i class="fa-solid fa-spinner fa-spin" style="font-size: 22px;"></i>
+        <p style="margin-top: 6px; font-size: 13px;">Reading QR Code from photo...</p>
+      </div>
+    `;
+  }
+
+  try {
+    const html5QrCode = new Html5Qrcode('qr-reader-container');
+    const decodedText = await html5QrCode.scanFile(file, true);
+    handleQrCodeScanned(decodedText);
+  } catch (err) {
+    console.error('Image QR scan error:', err);
+    showToast('No scannable QR Code found in selected image', 'error');
+    if (resultBox) {
+      resultBox.style.background = 'rgba(220, 38, 38, 0.12)';
+      resultBox.style.border = '1.5px solid var(--accent-rose)';
+      resultBox.innerHTML = `
+        <div style="color: var(--accent-rose); font-weight: 700; font-size: 14px;">
+          <i class="fa-solid fa-circle-exclamation"></i> Could not detect a valid QR Code in the uploaded image. Please ensure the QR pass is clear and unblurred.
+        </div>
+      `;
     }
   }
 }

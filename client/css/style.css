@@ -1480,18 +1480,29 @@ textarea {
     justify-content: center;
   }
 
+  .form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px;
+  }
+
+  .form-grid.full {
+    grid-template-columns: 1fr !important;
+  }
+
   .stats-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr) !important;
     gap: 12px;
   }
 
   .stat-card {
-    padding: 16px;
+    padding: 14px;
   }
 
   .table-responsive {
     border-radius: var(--radius-md);
     border: 1px solid var(--border-color);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .data-table th, .data-table td {
@@ -1501,13 +1512,32 @@ textarea {
   }
 
   .modal-container {
-    padding: 20px 16px;
-    max-width: 96vw;
+    padding: 20px 14px;
+    max-width: 94vw !important;
+    width: 94vw !important;
     border-radius: var(--radius-md);
   }
 
   #admin-login-view .glass-card {
     padding: 24px 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .hero-title {
+    font-size: 24px;
+  }
+
+  .hero-subtitle {
+    font-size: 13px;
+  }
+
+  .brand-text h1 {
+    font-size: 16px;
   }
 }
 

@@ -382,6 +382,59 @@
     </div>
   </div>
 
+  <!-- AUDITORIUM ENTRY QR SCANNER MODAL -->
+  <div class="modal-overlay" id="qr-scanner-modal" style="z-index: 9999;">
+    <div class="modal-container" style="max-width: 520px; width: 92vw; text-align: center; padding: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
+        <h3 style="font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px; margin: 0;">
+          <i class="fa-solid fa-qrcode" style="color: var(--accent-emerald);"></i> Auditorium Entry Scanner
+        </h3>
+        <button class="file-remove" onclick="closeQrScannerModal()" style="font-size: 22px; cursor: pointer;">&times;</button>
+      </div>
+
+      <!-- Mode Selector Tabs: Live Camera vs Image Upload vs Manual Entry -->
+      <div style="display: flex; gap: 6px; margin-bottom: 16px; background: var(--bg-secondary); padding: 4px; border-radius: var(--radius-md);">
+        <button type="button" class="nav-btn active" id="scanner-tab-camera" onclick="switchScannerTab('camera')" style="flex: 1; padding: 8px 4px; font-size: 12px; justify-content: center;">
+          <i class="fa-solid fa-camera"></i> Camera
+        </button>
+        <button type="button" class="nav-btn" id="scanner-tab-upload" onclick="switchScannerTab('upload')" style="flex: 1; padding: 8px 4px; font-size: 12px; justify-content: center;">
+          <i class="fa-solid fa-image"></i> Upload Photo
+        </button>
+        <button type="button" class="nav-btn" id="scanner-tab-manual" onclick="switchScannerTab('manual')" style="flex: 1; padding: 8px 4px; font-size: 12px; justify-content: center;">
+          <i class="fa-solid fa-keyboard"></i> Reg No
+        </button>
+      </div>
+
+      <!-- TAB 1: Live Camera Scanner Viewport -->
+      <div id="scanner-view-camera">
+        <div id="qr-reader-container" style="width: 100%; max-width: 380px; margin: 0 auto 12px; border-radius: var(--radius-md); overflow: hidden; background: #000000; min-height: 240px; position: relative;">
+          <div id="qr-reader" style="width: 100%;"></div>
+        </div>
+      </div>
+
+      <!-- TAB 2: Image File Upload Scanner -->
+      <div id="scanner-view-upload" style="display: none; padding: 24px 16px; border: 2px dashed var(--accent-terracotta); border-radius: var(--radius-md); background: var(--bg-secondary); margin-bottom: 12px; cursor: pointer;" onclick="document.getElementById('qr-image-input').click()">
+        <i class="fa-solid fa-cloud-arrow-up" style="font-size: 36px; color: var(--accent-terracotta); margin-bottom: 8px;"></i>
+        <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">Click or Select QR Code Photo / Screenshot</div>
+        <div style="font-size: 12px; color: var(--text-secondary);">Upload QR pass image from phone gallery or files</div>
+        <input type="file" id="qr-image-input" accept="image/*" style="display: none;" onchange="scanSelectedQrImage(this)">
+      </div>
+
+      <!-- TAB 3: Manual Register Number Entry -->
+      <div id="scanner-view-manual" style="display: none; margin-bottom: 12px;">
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="manual-reg-input" placeholder="Leader Reg No (e.g. 211520104001)" style="font-size: 13px; text-transform: uppercase;">
+          <button type="button" class="btn-primary" style="width: auto; padding: 10px 18px; font-size: 13px; white-space: nowrap;" onclick="verifyManualTicket()">
+            Verify
+          </button>
+        </div>
+      </div>
+
+      <!-- Verification Result Display Box -->
+      <div id="qr-scan-result" style="display: none; margin-top: 12px; padding: 14px; border-radius: var(--radius-md); text-align: left;"></div>
+    </div>
+  </div>
+
   <!-- IMAGE & FILE LIGHTBOX PREVIEW MODAL -->
   <div class="lightbox-modal" id="image-lightbox-modal" onclick="closeImageLightbox(event)">
     <div class="lightbox-content-box" onclick="event.stopPropagation()">
