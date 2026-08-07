@@ -390,9 +390,15 @@ async function openTeamDetailsModal(teamId) {
       membersHtml = `<div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Single member team (Leader only).</div>`;
     }
 
+    let pptUrl = (team.pptFile || '').replace(/\\/g, '/');
+    if (pptUrl && !pptUrl.startsWith('/') && !pptUrl.startsWith('http')) pptUrl = '/' + pptUrl;
+
+    let screenshotUrl = (team.eurekaScreenshot || '').replace(/\\/g, '/');
+    if (screenshotUrl && !screenshotUrl.startsWith('/') && !screenshotUrl.startsWith('http')) screenshotUrl = '/' + screenshotUrl;
+
     const modalContent = document.getElementById('modal-team-content');
     modalContent.innerHTML = `
-      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 20px;">
+      <div class="form-grid" style="grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px;">
         
         <!-- Leader Info -->
         <div style="background: var(--bg-secondary); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
@@ -431,13 +437,13 @@ async function openTeamDetailsModal(teamId) {
       <div style="background: rgba(6, 182, 212, 0.05); border: 1px solid rgba(6, 182, 212, 0.3); padding: 20px; border-radius: var(--radius-md); margin-bottom: 16px;">
         <h4 style="color: var(--accent-cyan); margin-bottom: 12px;"><i class="fa-solid fa-folder-open"></i> Submissions & Eureka Verification</h4>
         <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-          <a href="${team.pptFile}" target="_blank" download class="btn-secondary" style="text-decoration: none;">
+          <a href="${pptUrl}" target="_blank" download class="btn-secondary" style="text-decoration: none;">
             <i class="fa-solid fa-file-powerpoint" style="color: var(--accent-amber);"></i> Download Presentation PPT
           </a>
-          <button type="button" class="btn-primary" style="padding: 8px 16px; font-size: 13px;" onclick="openImageLightbox('${team.eurekaScreenshot}', 'Eureka Screenshot - ${encodeURIComponent(team.teamName)}')">
+          <button type="button" class="btn-primary" style="padding: 8px 16px; font-size: 13px;" onclick="openImageLightbox('${screenshotUrl}', 'Eureka Screenshot - ${encodeURIComponent(team.teamName)}')">
             <i class="fa-solid fa-expand"></i> Preview Screenshot Lightbox
           </button>
-          <a href="${team.eurekaScreenshot}" target="_blank" class="btn-secondary" style="text-decoration: none; border-color: var(--accent-cyan);">
+          <a href="${screenshotUrl}" target="_blank" class="btn-secondary" style="text-decoration: none; border-color: var(--accent-cyan);">
             <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Raw Screenshot
           </a>
         </div>
@@ -811,25 +817,45 @@ function openImageLightbox(fileUrl, title = 'Eureka Screenshot Proof') {
 
   if (titleEl) titleEl.textContent = decodeURIComponent(title);
 
-  const isPdf = fileUrl.toLowerCase().endsWith('.pdf');
+  if (!fileUrl) {
+    showToast('No screenshot file path recorded for this submission.', 'warning');
+    return;
+  }
+
+  // Normalize Windows backslashes to forward slashes and ensure proper path prefix
+  let cleanUrl = String(fileUrl).replace(/\\/g, '/');
+  if (!cleanUrl.startsWith('/') && !cleanUrl.startsWith('http')) {
+    cleanUrl = '/' + cleanUrl;
+  }
+
+  const isPdf = cleanUrl.toLowerCase().endsWith('.pdf');
 
   if (isPdf) {
     bodyContent.innerHTML = `
-      <iframe src="${fileUrl}" style="width: 80vw; height: 70vh; border: none; border-radius: var(--radius-md);"></iframe>
+      <iframe src="${cleanUrl}" style="width: 100%; height: 70vh; border: none; border-radius: var(--radius-md);"></iframe>
     `;
   } else {
     bodyContent.innerHTML = `
-      <img src="${fileUrl}" alt="Verification Proof" id="lightbox-image">
+      <div style="text-align: center; width: 100%;">
+        <img src="${cleanUrl}" alt="Eureka Verification Proof" id="lightbox-image" style="max-width: 100%; max-height: 72vh; border-radius: var(--radius-md); object-fit: contain;">
+        <div style="margin-top: 14px;">
+          <a href="${cleanUrl}" target="_blank" download class="btn-primary" style="display: inline-flex; align-items: center; gap: 8px; width: auto; padding: 8px 20px; font-size: 13px; text-decoration: none;">
+            <i class="fa-solid fa-download"></i> Download Full Resolution File
+          </a>
+        </div>
+      </div>
     `;
   }
 
   modal.classList.add('active');
+  modal.style.display = 'flex';
 }
 
 function closeImageLightbox(event) {
   const modal = document.getElementById('image-lightbox-modal');
   if (modal) {
     modal.classList.remove('active');
+    modal.style.display = 'none';
   }
 }
 
