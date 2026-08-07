@@ -459,6 +459,9 @@ async function openTeamDetailsModal(teamId) {
           <button type="button" class="btn-secondary" style="border-color: var(--accent-terracotta); color: var(--accent-terracotta);" onclick="triggerManualBackupEmail('${team._id}')">
             <i class="fa-solid fa-envelope"></i> Send Backup Email to for12345freelancing@gmail.com
           </button>
+          <button type="button" class="btn-secondary" style="border-color: var(--accent-rose); color: var(--accent-rose);" onclick="triggerDeleteTeam('${team._id}', '${encodeURIComponent(team.teamName)}')">
+            <i class="fa-solid fa-trash-can"></i> Delete Team Registration
+          </button>
         </div>
         <p style="font-size: 12px; color: var(--text-muted); margin-top: 10px;">
           <i class="fa-solid fa-circle-info"></i> Verify that the Eureka registration screenshot clearly contains NEC ID <strong>NEC2621509</strong> before approving.
@@ -531,6 +534,63 @@ async function triggerSendAllBackups() {
     showToast('Network error dispatching bulk backup emails', 'error');
   }
 }
+
+async function triggerDeleteTeam(teamId, encodedTeamName) {
+  const teamName = decodeURIComponent(encodedTeamName || '');
+  if (!confirm(`Are you sure you want to PERMANENTLY DELETE team "${teamName}"? This action cannot be undone.`)) return;
+
+  try {
+    showToast('Deleting team registration...', 'info');
+    const response = await fetch(`/api/admin/teams/${teamId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${currentAdminToken}`
+      }
+    });
+    const result = await response.json();
+    if (result.success) {
+      showToast(result.message || 'Team deleted successfully', 'success');
+      closeTeamDetailsModal();
+      loadAdminStats();
+      loadTeamsData();
+    } else {
+      showToast(result.message || 'Failed to delete team', 'error');
+    }
+  } catch (err) {
+    console.error('Delete team error:', err);
+    showToast('Network error deleting team', 'error');
+  }
+}
+
+async function triggerClearAllTeams() {
+  const confirmText = prompt('WARNING: You are about to DELETE ALL REGISTERED TEAMS!\n\nType DELETE to confirm clearing all registration data:');
+  if (!confirmText || confirmText.trim().toUpperCase() !== 'DELETE') {
+    showToast('Action cancelled', 'info');
+    return;
+  }
+
+  try {
+    showToast('Clearing all registered teams...', 'info');
+    const response = await fetch('/api/admin/clear-all-teams', {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${currentAdminToken}`
+      }
+    });
+    const result = await response.json();
+    if (result.success) {
+      showToast(result.message || 'All registration data cleared successfully!', 'success');
+      loadAdminStats();
+      loadTeamsData();
+    } else {
+      showToast(result.message || 'Failed to clear registrations', 'error');
+    }
+  } catch (err) {
+    console.error('Clear all teams error:', err);
+    showToast('Network error clearing registrations', 'error');
+  }
+}
+
 
 
 // Approve Team Handler

@@ -165,11 +165,17 @@
           <h3 style="font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
             <i class="fa-solid fa-sliders" style="color: var(--accent-terracotta);"></i> Control Toolbar
           </h3>
-          <!-- Registration Open / Close Switch Button -->
-          <button type="button" class="btn-primary" id="reg-toggle-btn" onclick="toggleRegistrationStatus()"
-            style="width: auto; padding: 8px 18px; font-size: 13px; background: var(--accent-emerald); border-color: var(--accent-emerald);">
-            <i class="fa-solid fa-circle-dot"></i> <span id="reg-toggle-text">Registration: OPEN</span>
-          </button>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="btn-primary" id="reg-toggle-btn" onclick="toggleRegistrationStatus()"
+              style="width: auto; padding: 8px 18px; font-size: 13px; background: var(--accent-emerald); border-color: var(--accent-emerald);">
+              <i class="fa-solid fa-circle-dot"></i> <span id="reg-toggle-text">Registration: OPEN</span>
+            </button>
+            <button type="button" class="btn-secondary" onclick="triggerClearAllTeams()"
+              style="width: auto; padding: 8px 16px; font-size: 13px; color: var(--accent-rose); border-color: var(--accent-rose);"
+              title="Wipe all registered team data to start fresh for competition">
+              <i class="fa-solid fa-trash-can"></i> Clear All Registrations
+            </button>
+          </div>
         </div>
 
         <div class="form-grid" style="grid-template-columns: repeat(4, 1fr); gap: 14px;">

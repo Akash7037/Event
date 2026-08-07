@@ -769,4 +769,65 @@ exports.sendAllBackupEmails = async (req, res, next) => {
   }
 };
 
+// @desc    Delete a single team registration by ID
+// @route   DELETE /api/admin/teams/:id
+// @access  Private (Admin)
+exports.deleteTeam = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    let deletedTeam = null;
+
+    if (getIsConnected()) {
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        deletedTeam = await Team.findByIdAndDelete(id);
+      }
+    } else {
+      const { inMemoryTeams } = require('./teamController');
+      const idx = inMemoryTeams.findIndex(t => t._id === id || t.id === id);
+      if (idx !== -1) {
+        deletedTeam = inMemoryTeams.splice(idx, 1)[0];
+      }
+    }
+
+    if (!deletedTeam) {
+      return res.status(404).json({ success: false, message: 'Team registration not found.' });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Team "${deletedTeam.teamName}" deleted successfully.`,
+      deletedId: id
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Clear ALL registered teams data
+// @route   DELETE /api/admin/clear-all-teams
+// @access  Private (Admin)
+exports.clearAllTeams = async (req, res, next) => {
+  try {
+    let count = 0;
+
+    if (getIsConnected()) {
+      const result = await Team.deleteMany({});
+      count = result.deletedCount;
+    } else {
+      const { inMemoryTeams } = require('./teamController');
+      count = inMemoryTeams.length;
+      inMemoryTeams.length = 0;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Successfully cleared ALL ${count} registered team(s). Database is now fresh!`,
+      deletedCount: count
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
 
