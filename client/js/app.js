@@ -398,6 +398,23 @@ async function checkApplicationStatus() {
             </div>
           </div>
 
+          ${data.status === 'Approved' ? `
+            <div style="margin-top: 16px; padding: 20px; background: rgba(20, 184, 166, 0.08); border: 2px dashed var(--accent-emerald); border-radius: var(--radius-md); text-align: center;">
+              <h4 style="color: var(--accent-emerald); font-weight: 800; font-size: 16px; margin-bottom: 6px;">
+                <i class="fa-solid fa-qrcode"></i> YOUR OFFICIAL AUDITORIUM ENTRY QR PASS
+              </h4>
+              <p style="font-size: 12px; color: var(--text-primary); margin-bottom: 14px;">Present this QR Code at the auditorium entrance scanner for instant check-in.</p>
+              <div style="background: #ffffff; padding: 14px; display: inline-block; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(JSON.stringify({ ticketId: data.id || data.registerNumber, registerNumber: data.registerNumber, teamName: data.teamName }))}" alt="Auditorium Entry QR Pass" style="width: 200px; height: 200px; display: block;" />
+              </div>
+              <div style="margin-top: 14px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                <a href="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(JSON.stringify({ ticketId: data.id || data.registerNumber, registerNumber: data.registerNumber, teamName: data.teamName }))}" target="_blank" download="Auditorium_Entry_QR_Pass_${data.registerNumber}.png" class="btn-primary" style="display: inline-flex; align-items: center; gap: 8px; width: auto; padding: 8px 18px; text-decoration: none; font-size: 13px; background: var(--accent-emerald); border-color: var(--accent-emerald);">
+                  <i class="fa-solid fa-download"></i> Save QR Pass Image
+                </a>
+              </div>
+            </div>
+          ` : ''}
+
           ${data.status === 'Rejected' ? `
             <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); padding: 16px; border-radius: var(--radius-md); margin-top: 16px;">
               <div style="font-weight: 700; color: var(--accent-rose); font-size: 14px; margin-bottom: 4px;">

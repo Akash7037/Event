@@ -459,6 +459,11 @@ async function openTeamDetailsModal(teamId) {
           <button type="button" class="btn-secondary" style="border-color: var(--accent-terracotta); color: var(--accent-terracotta);" onclick="triggerManualBackupEmail('${team._id}')">
             <i class="fa-solid fa-envelope"></i> Send Backup Email to for12345freelancing@gmail.com
           </button>
+          ${team.status === 'Approved' ? `
+            <button type="button" class="btn-secondary" style="border-color: var(--accent-emerald); color: var(--accent-emerald);" onclick="handleApproveTeam()">
+              <i class="fa-solid fa-qrcode"></i> Resend Approval QR Email
+            </button>
+          ` : ''}
           <button type="button" class="btn-secondary" style="border-color: var(--accent-rose); color: var(--accent-rose);" onclick="triggerDeleteTeam('${team._id}', '${encodeURIComponent(team.teamName)}')">
             <i class="fa-solid fa-trash-can"></i> Delete Team Registration
           </button>

@@ -210,14 +210,17 @@ exports.getTeamStatus = async (req, res, next) => {
     res.status(200).json({
       success: true,
       data: {
+        id: team._id,
         teamName: team.teamName,
         startupName: team.startupName || team.teamName,
-        leaderName: team.leader.name,
-        registerNumber: team.leader.registerNumber,
-        department: team.leader.department,
-        year: team.leader.year,
+        leaderName: team.leader ? team.leader.name : 'Leader',
+        registerNumber: team.leader ? team.leader.registerNumber : '',
+        department: team.leader ? team.leader.department : '',
+        year: team.leader ? team.leader.year : '',
         innovationDomain: team.innovationDomain,
         status: team.status,
+        checkedIn: team.checkedIn || false,
+        checkedInAt: team.checkedInAt || null,
         rejectionReason: team.rejectionReason,
         submittedAt: team.submittedAt
       }
