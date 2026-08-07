@@ -383,48 +383,48 @@ async function checkApplicationStatus() {
             </span>
           </div>
 
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; background: var(--bg-secondary); padding: 12px 16px; border-radius: var(--radius-md);">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 12px; margin-bottom: 16px; background: var(--bg-secondary); padding: 12px 16px; border-radius: var(--radius-md);">
             <div>
-              <span style="font-size: 12px; color: var(--text-muted);">Department</span>
-              <div style="font-size: 14px; font-weight: 600;">${data.department}</div>
+              <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Department</span>
+              <div style="font-size: 13px; font-weight: 600;">${data.department}</div>
             </div>
             <div>
-              <span style="font-size: 12px; color: var(--text-muted);">Year</span>
-              <div style="font-size: 14px; font-weight: 600;">${data.year}</div>
+              <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Year</span>
+              <div style="font-size: 13px; font-weight: 600;">${data.year}</div>
             </div>
             <div>
-              <span style="font-size: 12px; color: var(--text-muted);">Domain</span>
-              <div style="font-size: 14px; font-weight: 600; color: var(--accent-cyan);">${data.innovationDomain}</div>
+              <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Domain</span>
+              <div style="font-size: 13px; font-weight: 600; color: var(--accent-cyan);">${data.innovationDomain}</div>
             </div>
           </div>
 
           ${data.status === 'Approved' ? `
-            <div style="margin-top: 18px; padding: 24px; background: rgba(20, 184, 166, 0.08); border: 2px dashed var(--accent-emerald); border-radius: var(--radius-lg); text-align: center; box-shadow: var(--shadow-md);">
+            <div style="margin-top: 18px; padding: 18px 14px; background: rgba(20, 184, 166, 0.08); border: 2px dashed var(--accent-emerald); border-radius: var(--radius-lg); text-align: center; box-shadow: var(--shadow-md);">
               <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(20, 184, 166, 0.15); color: var(--accent-emerald); padding: 4px 14px; border-radius: var(--radius-full); font-size: 12px; font-weight: 700; margin-bottom: 10px;">
                 <i class="fa-solid fa-circle-check"></i> ENTRY APPROVED
               </div>
-              <h4 style="color: var(--accent-emerald); font-weight: 800; font-size: 18px; margin-bottom: 4px;">
+              <h4 style="color: var(--accent-emerald); font-weight: 800; font-size: 16px; margin-bottom: 6px;">
                 <i class="fa-solid fa-qrcode"></i> AUDITORIUM ENTRY QR PASS
               </h4>
-              <p style="font-size: 13px; color: var(--text-primary); margin-bottom: 16px;">
+              <p style="font-size: 12px; color: var(--text-primary); margin-bottom: 16px; max-width: 320px; margin-left: auto; margin-right: auto;">
                 Show this QR Pass on your mobile screen at the auditorium entrance scanner for instant check-in.
               </p>
 
-              <div style="background: #ffffff; padding: 18px; display: inline-block; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); border: 1px solid var(--border-color);">
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(JSON.stringify({ ticketId: data.id || data.registerNumber, registerNumber: data.registerNumber, teamName: data.teamName }))}" alt="Auditorium Entry QR Pass" style="width: 220px; height: 220px; display: block; border-radius: 8px;" />
-                <div style="margin-top: 10px; font-size: 12px; font-weight: 800; color: #141413; text-transform: uppercase;">${data.teamName}</div>
-                <div style="font-size: 11px; color: #64748b;">Leader Reg No: ${data.registerNumber}</div>
+              <div style="background: #ffffff; padding: 16px; display: inline-block; width: 100%; max-width: 250px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); border: 1px solid var(--border-color); box-sizing: border-box; margin: 0 auto;">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(JSON.stringify({ ticketId: data.id || data.registerNumber, registerNumber: data.registerNumber, teamName: data.teamName }))}" alt="Auditorium Entry QR Pass" style="width: 100%; max-width: 210px; height: auto; aspect-ratio: 1 / 1; display: block; border-radius: 8px; margin: 0 auto; object-fit: contain;" />
+                <div style="margin-top: 10px; font-size: 12px; font-weight: 800; color: #141413; text-transform: uppercase; word-break: break-word;">${data.teamName}</div>
+                <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Reg No: ${data.registerNumber}</div>
               </div>
 
               ${data.checkedIn ? `
-                <div style="margin-top: 14px; background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); border: 1px solid var(--accent-emerald); padding: 8px 14px; border-radius: var(--radius-md); font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
+                <div style="margin-top: 14px; background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); border: 1px solid var(--accent-emerald); padding: 8px 14px; border-radius: var(--radius-md); font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; max-width: 100%;">
                   <i class="fa-solid fa-user-check"></i> Checked-In at Auditorium at ${new Date(data.checkedInAt).toLocaleTimeString()}
                 </div>
               ` : ''}
 
-              <div style="margin-top: 16px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
-                <a href="https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(JSON.stringify({ ticketId: data.id || data.registerNumber, registerNumber: data.registerNumber, teamName: data.teamName }))}" target="_blank" download="Auditorium_Entry_QR_Pass_${data.registerNumber}.png" class="btn-primary" style="display: inline-flex; align-items: center; gap: 8px; width: auto; padding: 10px 22px; text-decoration: none; font-size: 13px; background: var(--accent-emerald); border-color: var(--accent-emerald); font-weight: 700;">
-                  <i class="fa-solid fa-download"></i> Save High-Res QR Pass Image
+              <div style="margin-top: 16px; display: flex; justify-content: center; gap: 10px;">
+                <a href="https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(JSON.stringify({ ticketId: data.id || data.registerNumber, registerNumber: data.registerNumber, teamName: data.teamName }))}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; max-width: 250px; padding: 10px 16px; text-decoration: none; font-size: 12px; background: var(--accent-emerald); border-color: var(--accent-emerald); font-weight: 700; border-radius: var(--radius-md);">
+                  <i class="fa-solid fa-expand"></i> Open Full QR Pass Image
                 </a>
               </div>
             </div>
