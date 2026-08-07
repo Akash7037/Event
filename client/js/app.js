@@ -2,6 +2,84 @@
    Student Portal Client JavaScript - Startup Pitching Competition 2026
    ========================================================================== */
 
+// Theme Manager (Light / Dark Theme Switcher)
+function initTheme() {
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  updateThemeToggleUI(savedTheme);
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', newTheme);
+  localStorage.setItem('theme', newTheme);
+  updateThemeToggleUI(newTheme);
+}
+
+function updateThemeToggleUI(theme) {
+  const toggleBtn = document.getElementById('theme-toggle-btn');
+  const headerBtn = document.getElementById('theme-toggle-header-btn');
+
+  if (theme === 'dark') {
+    if (toggleBtn) toggleBtn.innerHTML = '<i class="fa-solid fa-sun"></i> <span id="theme-toggle-text">Light Mode</span>';
+    if (headerBtn) headerBtn.innerHTML = '<i class="fa-solid fa-sun" style="color: #f59e0b;"></i>';
+  } else {
+    if (toggleBtn) toggleBtn.innerHTML = '<i class="fa-solid fa-moon"></i> <span id="theme-toggle-text">Dark Mode</span>';
+    if (headerBtn) headerBtn.innerHTML = '<i class="fa-solid fa-moon"></i>';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
+  checkRegistrationIsOpen();
+});
+
+async function checkRegistrationIsOpen() {
+  try {
+    const res = await fetch('/api/teams/registration-status');
+    const data = await res.json();
+    if (data.success && data.isOpen === false) {
+      showRegistrationClosedBanner();
+    }
+  } catch (err) {
+    console.warn('Could not check registration status:', err);
+  }
+}
+
+function showRegistrationClosedBanner() {
+  const form = document.getElementById('registration-form');
+  const viewRegister = document.getElementById('view-register');
+  if (!viewRegister || document.getElementById('reg-closed-notice')) return;
+
+  const closedNotice = document.createElement('div');
+  closedNotice.id = 'reg-closed-notice';
+  closedNotice.style.cssText = `
+    background: rgba(220, 38, 38, 0.12);
+    border: 2px solid var(--accent-rose);
+    padding: 24px;
+    border-radius: var(--radius-lg);
+    text-align: center;
+    margin-bottom: 24px;
+  `;
+  closedNotice.innerHTML = `
+    <i class="fa-solid fa-lock" style="font-size: 36px; color: var(--accent-rose); margin-bottom: 10px;"></i>
+    <h2 style="font-size: 22px; font-weight: 800; color: var(--accent-rose); margin-bottom: 8px;">Registration is Currently Closed</h2>
+    <p style="font-size: 14px; color: var(--text-primary);">The admin has closed team registration submissions for Startup Pitching Competition 2026. If you have already registered, you can still check your application status under the <strong>Check Status</strong> tab.</p>
+  `;
+
+  viewRegister.insertBefore(closedNotice, viewRegister.firstChild);
+  if (form) {
+    form.style.opacity = '0.4';
+    form.style.pointerEvents = 'none';
+    const submitBtn = document.getElementById('submit-btn');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<i class="fa-solid fa-lock"></i> Registration Closed`;
+    }
+  }
+}
+
 // Helper: Show Toast Notification
 function showToast(message, type = 'info') {
   const container = document.getElementById('toast-container');
@@ -9,7 +87,7 @@ function showToast(message, type = 'info') {
 
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
-  
+
   let iconClass = 'fa-circle-info';
   if (type === 'success') iconClass = 'fa-circle-check';
   if (type === 'error') iconClass = 'fa-circle-xmark';
@@ -46,17 +124,23 @@ function switchTab(tabName) {
   const statusView = document.getElementById('view-status');
   const registerBtn = document.getElementById('tab-register-btn');
   const statusBtn = document.getElementById('tab-status-btn');
+  const mobileRegisterBtn = document.getElementById('mobile-tab-register');
+  const mobileStatusBtn = document.getElementById('mobile-tab-status');
 
   if (tabName === 'register') {
     registerView.style.display = 'block';
     statusView.style.display = 'none';
-    registerBtn.classList.add('active');
-    statusBtn.classList.remove('active');
+    if (registerBtn) registerBtn.classList.add('active');
+    if (statusBtn) statusBtn.classList.remove('active');
+    if (mobileRegisterBtn) mobileRegisterBtn.classList.add('active');
+    if (mobileStatusBtn) mobileStatusBtn.classList.remove('active');
   } else if (tabName === 'status') {
     registerView.style.display = 'none';
     statusView.style.display = 'block';
-    registerBtn.classList.remove('active');
-    statusBtn.classList.add('active');
+    if (registerBtn) registerBtn.classList.remove('active');
+    if (statusBtn) statusBtn.classList.add('active');
+    if (mobileRegisterBtn) mobileRegisterBtn.classList.remove('active');
+    if (mobileStatusBtn) mobileStatusBtn.classList.add('active');
   }
 }
 
@@ -156,7 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   dropzones.forEach(item => {
     if (!item.zone) return;
-    
+
     ['dragenter', 'dragover'].forEach(eventName => {
       item.zone.addEventListener(eventName, (e) => {
         e.preventDefault();
@@ -225,7 +309,7 @@ async function handleRegistrationSubmit(event) {
     const result = await response.json();
 
     if (result.success) {
-      document.getElementById('success-modal-message').textContent = 
+      document.getElementById('success-modal-message').textContent =
         `Team "${result.data.teamName}" (Leader: ${result.data.leaderName}) registration has been recorded successfully. Status is Pending Verification.`;
       document.getElementById('success-modal').classList.add('active');
       form.reset();
@@ -276,7 +360,7 @@ async function checkApplicationStatus() {
       const data = result.data;
       let badgeClass = 'badge-pending';
       let statusIcon = 'fa-clock';
-      
+
       if (data.status === 'Approved') {
         badgeClass = 'badge-approved';
         statusIcon = 'fa-circle-check';
@@ -291,15 +375,15 @@ async function checkApplicationStatus() {
         <div class="glass-card" style="background: rgba(255, 255, 255, 0.02); margin-bottom: 0; padding: 24px;">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
             <div>
-              <h3 style="font-size: 20px; font-weight: 700; color: #ffffff;">${data.teamName}</h3>
-              <p style="font-size: 14px; color: var(--text-secondary);">Leader: ${data.leaderName} (${data.registerNumber})</p>
+              <h3 style="font-size: 20px; font-weight: 800; color: var(--accent-cyan); margin-bottom: 2px;">${data.startupName || data.teamName}</h3>
+              <p style="font-size: 13px; color: var(--text-primary); font-weight: 600;">Team: ${data.teamName} | Leader: ${data.leaderName} (${data.registerNumber})</p>
             </div>
             <span class="badge ${badgeClass}">
               <i class="fa-solid ${statusIcon}"></i> ${data.status}
             </span>
           </div>
 
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; background: rgba(0,0,0,0.3); padding: 12px 16px; border-radius: var(--radius-md);">
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; background: var(--bg-secondary); padding: 12px 16px; border-radius: var(--radius-md);">
             <div>
               <span style="font-size: 12px; color: var(--text-muted);">Department</span>
               <div style="font-size: 14px; font-weight: 600;">${data.department}</div>
@@ -319,12 +403,15 @@ async function checkApplicationStatus() {
               <div style="font-weight: 700; color: var(--accent-rose); font-size: 14px; margin-bottom: 4px;">
                 <i class="fa-solid fa-triangle-exclamation"></i> Rejection Reason:
               </div>
-              <p style="font-size: 14px; color: #ffffff;">${data.rejectionReason || 'No specific reason provided.'}</p>
+              <p style="font-size: 14px; color: var(--text-primary);">${data.rejectionReason || 'No specific reason provided.'}</p>
             </div>
           ` : ''}
 
-          <div style="margin-top: 16px; font-size: 12px; color: var(--text-muted); text-align: right;">
-            Submitted on: ${submittedDate}
+          <div style="margin-top: 16px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 14px;">
+            <span style="font-size: 12px; color: var(--text-muted);">Submitted on: ${submittedDate}</span>
+            <button type="button" class="btn-secondary" style="padding: 6px 14px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px;" onclick="printRegistrationPass('${encodeURIComponent(JSON.stringify(data))}')">
+              <i class="fa-solid fa-print"></i> Print Official Registration Slip
+            </button>
           </div>
         </div>
       `;
@@ -345,3 +432,97 @@ async function checkApplicationStatus() {
     `;
   }
 }
+
+// Toggle FAQ Accordion
+function toggleFaq(btnElement) {
+  const faqItem = btnElement.closest('.faq-item');
+  if (!faqItem) return;
+
+  const isOpen = faqItem.classList.contains('open');
+
+  // Close all open FAQs first
+  document.querySelectorAll('.faq-item').forEach(item => {
+    item.classList.remove('open');
+  });
+
+  if (!isOpen) {
+    faqItem.classList.add('open');
+  }
+}
+
+// Print Official Registration Slip
+function printRegistrationPass(encodedData) {
+  try {
+    const data = JSON.parse(decodeURIComponent(encodedData));
+    const printWin = window.open('', '_blank', 'width=800,height=900');
+
+    printWin.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Registration Slip - ${data.teamName}</title>
+        <style>
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 30px; color: #1e293b; background: #ffffff; }
+          .header { text-align: center; border-bottom: 2px solid #0284c7; padding-bottom: 16px; margin-bottom: 24px; }
+          .header h1 { margin: 0; font-size: 24px; color: #0f172a; text-transform: uppercase; }
+          .header p { margin: 4px 0 0; color: #64748b; font-size: 14px; }
+          .badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 13px; margin-bottom: 20px; text-transform: uppercase; }
+          .badge-approved { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+          .badge-pending { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+          .badge-rejected { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+          .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; }
+          .field label { font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; display: block; margin-bottom: 4px; }
+          .field span { font-size: 15px; font-weight: 600; color: #0f172a; }
+          .footer { margin-top: 40px; border-top: 1px dashed #cbd5e1; padding-top: 16px; display: flex; justify-content: space-between; font-size: 12px; color: #64748b; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Intra-College Startup Pitching Competition 2026</h1>
+          <p>Organized by Entrepreneurship Development Cell (E-Cell)</p>
+        </div>
+        <div style="text-align: center;">
+          <span class="badge badge-${data.status === 'Approved' ? 'approved' : (data.status === 'Rejected' ? 'rejected' : 'pending')}">
+            STATUS: ${data.status}
+          </span>
+        </div>
+        <div class="grid">
+          <div class="field"><label>Startup / Project Name</label><span>${data.teamName}</span></div>
+          <div class="field"><label>Leader Name</label><span>${data.leaderName}</span></div>
+          <div class="field"><label>Leader Register No</label><span>${data.registerNumber}</span></div>
+          <div class="field"><label>Department / Year</label><span>${data.department} (${data.year})</span></div>
+          <div class="field"><label>Innovation Domain</label><span>${data.innovationDomain}</span></div>
+          <div class="field"><label>Submission Date</label><span>${new Date(data.submittedAt).toLocaleDateString()}</span></div>
+        </div>
+        <div class="footer">
+          <span>Official E-Cell Verification Slip</span>
+          <span>Generated on: ${new Date().toLocaleString()}</span>
+        </div>
+        <script>window.print();</script>
+      </body>
+      </html>
+    `);
+    printWin.document.close();
+  } catch (err) {
+    console.error('Print slip error:', err);
+    showToast('Failed to generate print slip', 'error');
+  }
+}
+
+// Attach real-time input formatting & stepper event listeners
+document.addEventListener('DOMContentLoaded', () => {
+  const leaderReg = document.getElementById('leaderRegNo');
+  if (leaderReg) {
+    leaderReg.addEventListener('input', (e) => {
+      e.target.value = e.target.value.toUpperCase();
+    });
+  }
+
+  const phoneInput = document.getElementById('leaderPhone');
+  if (phoneInput) {
+    phoneInput.addEventListener('input', (e) => {
+      e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
+    });
+  }
+});
+

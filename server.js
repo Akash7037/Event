@@ -43,6 +43,15 @@ app.use(express.static(path.join(__dirname, 'client')));
 // Serve uploads statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Health Check & Render Keep-Alive Endpoints (Zero-delay startup)
+app.get(['/api/health', '/api/ping'], (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: Math.floor(process.uptime())
+  });
+});
+
 // Routes
 app.use('/api/teams', require('./routes/teamRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
@@ -67,4 +76,19 @@ app.listen(PORT, () => {
   console.log(`🌐 Student Portal: http://localhost:${PORT}`);
   console.log(`🔐 Admin Portal:   http://localhost:${PORT}/admin`);
   console.log(`====================================================`);
+
+  // Render / Cloud Hosting Self-Ping Keep-Alive (runs every 10 mins to eliminate cold starts)
+  const serverUrl = process.env.RENDER_EXTERNAL_URL || process.env.SERVER_URL;
+  if (serverUrl) {
+    setInterval(() => {
+      try {
+        const http = serverUrl.startsWith('https') ? require('https') : require('http');
+        http.get(`${serverUrl}/api/ping`, (res) => {
+          console.log(`[KeepAlive] Pinged ${serverUrl}/api/ping - Status: ${res.statusCode}`);
+        }).on('error', (err) => console.warn('[KeepAlive Warning]', err.message));
+      } catch (e) {
+        // ignore
+      }
+    }, 10 * 60 * 1000);
+  }
 });

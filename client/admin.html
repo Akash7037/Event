@@ -1,13 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Portal | Startup Pitching Competition 2026</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/style.css">
+  <!-- HTML5 QR Code Scanner Library for Auditorium Entry -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
+
 <body>
+
+  <!-- Dynamic Background Glowing Orbs -->
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
 
   <!-- Toast Notification Container -->
   <div id="toast-container"></div>
@@ -15,48 +24,67 @@
   <!-- Admin Navbar -->
   <header class="navbar">
     <div class="container nav-container">
-      <a href="admin.html" class="brand">
-        <div class="brand-icon" style="background: var(--gradient-accent);">A</div>
-        <div class="brand-text">
-          <h1>ADMIN PORTAL</h1>
-          <span>Startup Pitching 2026</span>
-        </div>
-      </a>
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <a href="admin.html" class="brand">
+          <div class="brand-icon" style="background: var(--gradient-accent);">A</div>
+          <div class="brand-text">
+            <h1>ADMIN PORTAL</h1>
+            <span>Startup Pitching 2026</span>
+          </div>
+        </a>
+        <button class="theme-toggle-header-btn" id="theme-toggle-header-btn" onclick="toggleTheme()"
+          title="Toggle Dark/Light Mode">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+      </div>
       <div class="nav-links" id="admin-nav-actions" style="display: none;">
         <span style="font-size: 14px; color: var(--text-secondary);" id="admin-user-display">
           <i class="fa-solid fa-user-shield"></i> Admin
         </span>
+        <button class="nav-btn" onclick="openEditCredentialsModal()">
+          <i class="fa-solid fa-user-gear"></i> Edit Credentials
+        </button>
         <a href="index.html" class="nav-btn">
           <i class="fa-solid fa-house"></i> Student Portal
         </a>
         <button class="nav-btn" onclick="handleAdminLogout()">
           <i class="fa-solid fa-right-from-bracket"></i> Logout
         </button>
+        <button class="nav-btn theme-toggle-btn" id="theme-toggle-btn" onclick="toggleTheme()"
+          title="Toggle Dark/Light Mode">
+          <i class="fa-solid fa-moon"></i> <span id="theme-toggle-text">Dark Mode</span>
+        </button>
       </div>
     </div>
   </header>
 
-  <main class="container" style="padding-top: 30px; padding-bottom: 60px;">
+  <main class="container" id="admin-main-container"
+    style="min-height: calc(100vh - 80px); display: flex; align-items: center; justify-content: center; padding: 0;">
 
-    <!-- VIEW 1: ADMIN LOGIN SCREEN -->
-    <div id="admin-login-view" style="max-width: 440px; margin: 40px auto 0;">
-      <div class="glass-card">
+    <!-- VIEW 1: ADMIN LOGIN SCREEN (PERFECTLY DEAD CENTERED) -->
+    <div id="admin-login-view"
+      style="display: flex; justify-content: center; align-items: center; width: 100%; margin: auto 0; padding: 20px 0;">
+      <div class="glass-card"
+        style="width: 100%; max-width: 440px; margin: 0 auto; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85); border: 1px solid rgba(255, 255, 255, 0.12);">
         <div class="card-header" style="text-align: center; display: block; border-bottom: none; margin-bottom: 12px;">
-          <div class="brand-icon" style="width: 56px; height: 56px; margin: 0 auto 16px; font-size: 26px; background: var(--gradient-accent);">
+          <div class="brand-icon"
+            style="width: 56px; height: 56px; margin: 0 auto 16px; font-size: 26px; background: var(--gradient-accent);">
             <i class="fa-solid fa-lock"></i>
           </div>
-          <h2 style="font-size: 24px;">Admin Portal Login</h2>
-          <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">Enter credentials to access competition verification dashboard</p>
+          <h2 style="font-size: 24px; text-align: center; justify-content: center; width: 100%; display: flex;">Admin
+            Portal Login</h2>
+          <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px; text-align: center; width: 100%;">
+            Enter credentials to access competition verification dashboard</p>
         </div>
 
         <form id="admin-login-form" onsubmit="handleAdminLogin(event)">
           <div class="form-group" style="margin-bottom: 16px;">
             <label for="adminUsername">Username or Email</label>
-            <input type="text" id="adminUsername" placeholder="admin@ecell.edu" required>
+            <input type="text" id="adminUsername" placeholder="admin@ecell.edu" autocomplete="username" required>
           </div>
           <div class="form-group" style="margin-bottom: 24px;">
             <label for="adminPassword">Password</label>
-            <input type="password" id="adminPassword" placeholder="••••••••" required>
+            <input type="password" id="adminPassword" placeholder="••••••••" autocomplete="current-password" required>
           </div>
           <button type="submit" class="btn-primary" id="login-submit-btn">
             <i class="fa-solid fa-arrow-right-to-bracket"></i> Login to Dashboard
@@ -68,8 +96,21 @@
     <!-- VIEW 2: ADMIN DASHBOARD SCREEN -->
     <div id="admin-dashboard-view" style="display: none;">
 
+      <!-- AUDITORIUM SCANNER QUICK LAUNCH BANNER -->
+      <div class="glass-card" style="padding: 16px 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, rgba(217, 119, 87, 0.08), rgba(16, 185, 129, 0.08)); border-left: 4px solid var(--accent-emerald); flex-wrap: wrap; gap: 12px;">
+        <div>
+          <h3 style="font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-qrcode" style="color: var(--accent-emerald); font-size: 20px;"></i> Live Auditorium Entry Camera Scanner
+          </h3>
+          <p style="font-size: 13px; color: var(--text-secondary); margin-top: 2px;">Scan student entry passes at the door or verify leader register numbers.</p>
+        </div>
+        <button type="button" class="btn-primary" onclick="openQrScannerModal()" style="width: auto; padding: 10px 22px; font-size: 14px; background: var(--accent-emerald); border-color: var(--accent-emerald);">
+          <i class="fa-solid fa-camera"></i> Open Camera Scanner
+        </button>
+      </div>
+
       <!-- STATISTICS GRID -->
-      <div class="stats-grid">
+      <div class="stats-grid" style="grid-template-columns: repeat(5, 1fr);">
         <div class="stat-card">
           <div class="stat-icon total"><i class="fa-solid fa-users"></i></div>
           <div class="stat-info">
@@ -98,22 +139,43 @@
             <span>Rejected Teams</span>
           </div>
         </div>
+        <div class="stat-card" style="border-left: 3px solid var(--accent-emerald);">
+          <div class="stat-icon approved" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald);">
+            <i class="fa-solid fa-qrcode"></i>
+          </div>
+          <div class="stat-info">
+            <h3 id="stat-checkedin">0</h3>
+            <span>Auditorium Present</span>
+          </div>
+        </div>
       </div>
 
-      <!-- SEARCH & FILTER TOOLBAR -->
+      <!-- SEARCH, FILTER & REGISTRATION TOGGLE TOOLBAR -->
       <div class="glass-card" style="padding: 20px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+          <h3 style="font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-sliders" style="color: var(--accent-terracotta);"></i> Control Toolbar
+          </h3>
+          <!-- Registration Open / Close Switch Button -->
+          <button type="button" class="btn-primary" id="reg-toggle-btn" onclick="toggleRegistrationStatus()" style="width: auto; padding: 8px 18px; font-size: 13px; background: var(--accent-emerald); border-color: var(--accent-emerald);">
+            <i class="fa-solid fa-circle-dot"></i> <span id="reg-toggle-text">Registration: OPEN</span>
+          </button>
+        </div>
+
         <div class="form-grid" style="grid-template-columns: repeat(4, 1fr); gap: 14px;">
           <div class="form-group">
             <label for="filter-search">Search</label>
-            <input type="text" id="filter-search" placeholder="Team / Leader Name / Reg No..." oninput="loadTeamsData()">
+            <input type="text" id="filter-search" placeholder="Team / Leader Name / Reg No..."
+              oninput="loadTeamsData()">
           </div>
           <div class="form-group">
-            <label for="filter-status">Status</label>
+            <label for="filter-status">Status & Check-In</label>
             <select id="filter-status" onchange="loadTeamsData()">
               <option value="All">All Statuses</option>
               <option value="Pending Verification">Pending Verification</option>
               <option value="Approved">Approved</option>
               <option value="Rejected">Rejected</option>
+              <option value="CheckedIn">📋 Checked-In Auditorium Only</option>
             </select>
           </div>
           <div class="form-group">
@@ -147,7 +209,8 @@
           <h2><i class="fa-solid fa-list-check"></i> Submissions List</h2>
           <div style="display: flex; align-items: center; gap: 16px;">
             <span style="font-size: 13px; color: var(--text-secondary);" id="teams-count-label">Showing 0 teams</span>
-            <button type="button" class="btn-success" style="padding: 8px 16px; font-size: 13px;" onclick="exportRegistrationsCsv()">
+            <button type="button" class="btn-success" style="padding: 8px 16px; font-size: 13px;"
+              onclick="exportRegistrationsCsv()">
               <i class="fa-solid fa-file-csv"></i> Export Data (CSV)
             </button>
           </div>
@@ -157,6 +220,7 @@
             <thead>
               <tr>
                 <th>Team Name</th>
+                <th>Startup Name (Project Name)</th>
                 <th>Leader Details</th>
                 <th>Dept / Year</th>
                 <th>Domain</th>
@@ -183,15 +247,17 @@
   <!-- TEAM DETAILS MODAL -->
   <div class="modal-overlay" id="team-details-modal">
     <div class="modal-container">
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 20px;">
+      <div
+        style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 20px;">
         <h2 style="font-size: 22px;" id="modal-team-title">Team Verification Details</h2>
         <button class="file-remove" onclick="closeTeamDetailsModal()" style="font-size: 22px;">&times;</button>
       </div>
-      
+
       <div id="modal-team-content"></div>
 
       <!-- Action Buttons -->
-      <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 28px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+      <div
+        style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 28px; border-top: 1px solid var(--border-color); padding-top: 20px;">
         <button type="button" class="btn-secondary" onclick="closeTeamDetailsModal()">Close</button>
         <button type="button" class="btn-danger" id="modal-reject-btn" onclick="openRejectReasonModal()">
           <i class="fa-solid fa-xmark"></i> Reject Team
@@ -206,15 +272,18 @@
   <!-- REJECTION REASON MODAL -->
   <div class="modal-overlay" id="reject-reason-modal" style="z-index: 1100;">
     <div class="modal-container" style="max-width: 500px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 16px;">
+      <div
+        style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 16px;">
         <h3 style="font-size: 18px; color: var(--accent-rose);">Enter Rejection Reason</h3>
         <button class="file-remove" onclick="closeRejectReasonModal()">&times;</button>
       </div>
       <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
-        State why this application is rejected (e.g., missing NEC ID in screenshot, illegible file, ineligible year, etc.). This reason will be emailed to the team leader.
+        State why this application is rejected (e.g., missing NEC ID in screenshot, illegible file, ineligible year,
+        etc.). This reason will be emailed to the team leader.
       </p>
       <div class="form-group" style="margin-bottom: 20px;">
-        <textarea id="rejection-reason-text" placeholder="e.g. Eureka registration screenshot does not show NEC ID (NEC2621509)." required></textarea>
+        <textarea id="rejection-reason-text"
+          placeholder="e.g. Eureka registration screenshot does not show NEC ID (NEC2621509)." required></textarea>
       </div>
       <div style="display: flex; justify-content: flex-end; gap: 12px;">
         <button type="button" class="btn-secondary" onclick="closeRejectReasonModal()">Cancel</button>
@@ -223,6 +292,134 @@
     </div>
   </div>
 
+  <!-- EDIT ADMIN CREDENTIALS & PASSWORD MODAL -->
+  <div class="modal-overlay" id="edit-credentials-modal" style="z-index: 1100;">
+    <div class="modal-container" style="max-width: 560px; padding: 24px;">
+      <div
+        style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 18px;">
+        <h3 style="font-size: 19px; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 10px;">
+          <i class="fa-solid fa-user-gear" style="color: var(--accent-cyan);"></i> Edit Admin Login Credentials
+        </h3>
+        <button class="file-remove" onclick="closeEditCredentialsModal()"
+          style="font-size: 22px; cursor: pointer;">&times;</button>
+      </div>
+
+      <form id="edit-credentials-form" onsubmit="handleAdminUpdateCredentials(event)">
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label for="currentAdminPassword" style="font-weight: 600;">Current Password <span
+              class="required">*</span></label>
+          <input type="password" id="currentAdminPassword" placeholder="Enter current password to authorize changes"
+            autocomplete="current-password" required>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;">
+          <div class="form-group">
+            <label for="editAdminUsername" style="font-weight: 600;">Admin Username <span
+                class="required">*</span></label>
+            <input type="text" id="editAdminUsername" placeholder="e.g. admin" autocomplete="username" required>
+          </div>
+          <div class="form-group">
+            <label for="editAdminEmail" style="font-weight: 600;">Admin Email <span class="required">*</span></label>
+            <input type="email" id="editAdminEmail" placeholder="e.g. admin@ecell.edu" autocomplete="email" required>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;">
+          <div class="form-group">
+            <label for="newAdminPassword" style="font-weight: 600;">New Password <span
+                style="font-size: 11px; color: var(--text-muted);">(Optional)</span></label>
+            <input type="password" id="newAdminPassword" placeholder="New password" autocomplete="new-password"
+              oninput="checkPasswordStrength()">
+          </div>
+          <div class="form-group">
+            <label for="confirmAdminPassword" style="font-weight: 600;">Confirm Password</label>
+            <input type="password" id="confirmAdminPassword" placeholder="Confirm password"
+              oninput="checkPasswordMatch()">
+          </div>
+        </div>
+
+        <span id="confirm-password-msg"
+          style="font-size: 12px; margin-top: -8px; margin-bottom: 12px; display: none;"></span>
+
+        <!-- Password Strength Track & Requirements Checklist -->
+        <div id="password-req-wrapper" style="margin-bottom: 18px;">
+          <div class="password-strength-container" id="password-strength-box"
+            style="display: none; margin-bottom: 10px;">
+            <div class="password-strength-header">
+              <span>Password Strength:</span>
+              <span class="password-strength-label" id="password-strength-text">Weak</span>
+            </div>
+            <div class="password-strength-track">
+              <div class="password-strength-fill" id="password-strength-fill"></div>
+            </div>
+          </div>
+
+          <div class="password-req-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <div class="password-req-item" id="req-length" style="font-size: 12px; padding: 4px 8px;">
+              <i class="fa-solid fa-circle-dot"></i> At least 8 characters
+            </div>
+            <div class="password-req-item" id="req-uppercase" style="font-size: 12px; padding: 4px 8px;">
+              <i class="fa-solid fa-circle-dot"></i> 1 Uppercase letter
+            </div>
+            <div class="password-req-item" id="req-number" style="font-size: 12px; padding: 4px 8px;">
+              <i class="fa-solid fa-circle-dot"></i> 1 Number
+            </div>
+            <div class="password-req-item" id="req-symbol" style="font-size: 12px; padding: 4px 8px;">
+              <i class="fa-solid fa-circle-dot"></i> 1 Special character
+            </div>
+          </div>
+        </div>
+
+        <div
+          style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+          <button type="button" class="btn-secondary" style="width: auto; padding: 10px 20px;"
+            onclick="closeEditCredentialsModal()">Cancel</button>
+          <button type="submit" class="btn-primary" style="width: auto; padding: 10px 24px;" id="edit-cred-submit-btn">
+            <i class="fa-solid fa-floppy-disk"></i> Save Credentials
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- IMAGE & FILE LIGHTBOX PREVIEW MODAL -->
+  <div class="lightbox-modal" id="image-lightbox-modal" onclick="closeImageLightbox(event)">
+    <div class="lightbox-content-box" onclick="event.stopPropagation()">
+      <div class="lightbox-header">
+        <h4 style="font-size: 16px; color: #ffffff;" id="lightbox-title">Document Preview</h4>
+        <button class="file-remove" onclick="closeImageLightbox()" style="font-size: 20px;">&times;</button>
+      </div>
+      <div class="lightbox-body" id="lightbox-body-content">
+        <!-- Dynamic Image Content -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Mobile Bottom Navigation Bar -->
+  <div class="mobile-bottom-nav">
+    <button class="mobile-nav-btn" onclick="openQrScannerModal()" style="color: var(--accent-emerald);">
+      <i class="fa-solid fa-qrcode" style="color: var(--accent-emerald);"></i>
+      <span>Scan QR</span>
+    </button>
+    <a href="index.html" class="mobile-nav-btn">
+      <i class="fa-solid fa-house"></i>
+      <span>Portal</span>
+    </a>
+    <button class="mobile-nav-btn" onclick="openEditCredentialsModal()">
+      <i class="fa-solid fa-user-gear"></i>
+      <span>Creds</span>
+    </button>
+    <button class="mobile-nav-btn" onclick="toggleTheme()">
+      <i class="fa-solid fa-moon"></i>
+      <span>Theme</span>
+    </button>
+    <button class="mobile-nav-btn" onclick="handleAdminLogout()">
+      <i class="fa-solid fa-right-from-bracket"></i>
+      <span>Logout</span>
+    </button>
+  </div>
+
   <script src="js/admin.js"></script>
 </body>
+
 </html>

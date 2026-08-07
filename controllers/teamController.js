@@ -11,8 +11,17 @@ const inMemoryTeams = [];
 // @access  Public
 exports.registerTeam = async (req, res, next) => {
   try {
+    const adminController = require('./adminController');
+    if (adminController.getIsRegistrationOpen && !adminController.getIsRegistrationOpen()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Registration for Startup Pitching Competition 2026 is currently CLOSED by the admin.'
+      });
+    }
+
     const {
       teamName,
+      startupName,
       leaderName,
       leaderRegNo,
       leaderDept,
@@ -96,6 +105,7 @@ exports.registerTeam = async (req, res, next) => {
 
     const teamData = {
       teamName: teamName.trim(),
+      startupName: startupName ? startupName.trim() : teamName.trim(),
       leader: {
         name: leaderName.trim(),
         registerNumber: formattedLeaderRegNo,
@@ -180,6 +190,7 @@ exports.getTeamStatus = async (req, res, next) => {
       success: true,
       data: {
         teamName: team.teamName,
+        startupName: team.startupName || team.teamName,
         leaderName: team.leader.name,
         registerNumber: team.leader.registerNumber,
         department: team.leader.department,

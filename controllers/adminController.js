@@ -14,6 +14,12 @@ const inMemoryAdmins = [
     username: 'admin',
     email: 'admin@ecell.edu',
     password: defaultAdminPassHash
+  },
+  {
+    _id: 'admin_suba',
+    username: 'Suba',
+    email: 'suba@ecell.edu',
+    password: defaultAdminPassHash
   }
 ];
 
@@ -35,23 +41,36 @@ exports.loginAdmin = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Please provide username/email and password.' });
     }
 
+    const cleanInput = usernameOrEmail.trim().toLowerCase();
+
     let admin;
     if (getIsConnected()) {
       admin = await Admin.findOne({
         $or: [
-          { email: usernameOrEmail.toLowerCase().trim() },
-          { username: usernameOrEmail.trim() }
+          { email: cleanInput },
+          { username: new RegExp('^' + usernameOrEmail.trim() + '$', 'i') }
         ]
       }).select('+password');
     } else {
-      admin = inMemoryAdmins.find(a => 
-        a.email === usernameOrEmail.toLowerCase().trim() || 
-        a.username === usernameOrEmail.trim()
+      admin = inMemoryAdmins.find(a =>
+        a.email.toLowerCase() === cleanInput ||
+        a.username.toLowerCase() === cleanInput
       );
+
+      // Fallback: If not explicitly found in memory array but password is 'admin123'
+      if (!admin && password === 'admin123') {
+        admin = {
+          _id: 'admin_' + Date.now(),
+          username: usernameOrEmail.trim(),
+          email: cleanInput.includes('@') ? cleanInput : `${cleanInput}@ecell.edu`,
+          password: defaultAdminPassHash
+        };
+        inMemoryAdmins.push(admin);
+      }
     }
 
     if (!admin) {
-      return res.status(401).json({ success: false, message: 'Invalid admin credentials.' });
+      return res.status(401).json({ success: false, message: 'Invalid admin credentials. Default credentials: Username: admin or Suba | Password: admin123' });
     }
 
     let isMatch = false;
@@ -146,7 +165,7 @@ exports.getTeams = async (req, res, next) => {
       }
       if (search && search.trim() !== '') {
         const q = search.trim().toLowerCase();
-        teams = teams.filter(t => 
+        teams = teams.filter(t =>
           t.teamName.toLowerCase().includes(q) ||
           t.leader.name.toLowerCase().includes(q) ||
           t.leader.registerNumber.toLowerCase().includes(q) ||
@@ -213,16 +232,24 @@ exports.approveTeam = async (req, res, next) => {
       await team.save();
     }
 
-    // Send Approval Email Notification
+    const qrData = encodeURIComponent(JSON.stringify({
+      ticketId: team._id,
+      registerNumber: team.leader ? team.leader.registerNumber : '',
+      teamName: team.teamName
+    }));
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${qrData}`;
+
+    // Send Approval Email Notification with Embedded QR Code Entry Pass
     const emailResult = await sendEmail({
-      email: team.leader.email,
-      subject: 'Registration Approved',
-      message: `Congratulations.\n\nYour team "${team.teamName}" has been approved for Startup Pitching Competition.`
+      email: team.leader ? team.leader.email : '',
+      subject: `🎉 Registration Approved! Auditorium Entry QR Pass - ${team.teamName}`,
+      message: `Congratulations ${team.leader ? team.leader.name : 'Team Leader'}!\n\nYour team "${team.teamName}" (${team.startupName || team.teamName}) has been officially APPROVED for the Intra-College Startup Pitching Competition 2026.\n\nYour official Auditorium Entry QR Pass is attached below. Present this QR Code at the auditorium entrance scanner for instant check-in.`,
+      qrUrl: qrUrl
     });
 
     res.status(200).json({
       success: true,
-      message: `Team "${team.teamName}" has been approved successfully. Email notification dispatched.`,
+      message: `Team "${team.teamName}" has been approved successfully. Approval QR Pass emailed to ${team.leader ? team.leader.email : 'leader'}.`,
       emailStatus: emailResult.success ? 'Sent' : 'Failed',
       data: team
     });
@@ -294,6 +321,7 @@ exports.exportRegistrationsCsv = async (req, res, next) => {
 
     const headers = [
       'Team Name',
+      'Startup Name (Project Name)',
       'Leader Name',
       'Leader Register No',
       'Leader Department',
@@ -332,6 +360,7 @@ exports.exportRegistrationsCsv = async (req, res, next) => {
 
       const row = [
         escapeCsv(t.teamName),
+        escapeCsv(t.startupName || t.teamName),
         escapeCsv(t.leader ? t.leader.name : ''),
         escapeCsv(t.leader ? t.leader.registerNumber : ''),
         escapeCsv(t.leader ? t.leader.department : ''),
@@ -366,3 +395,252 @@ exports.exportRegistrationsCsv = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Change Admin Password
+exports.changeAdminPassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const adminId = req.admin ? req.admin._id : null;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ success: false, message: 'Please provide current password and new password.' });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ success: false, message: 'New password must be at least 8 characters long.' });
+    }
+
+    if (getIsConnected()) {
+      const admin = await Admin.findById(adminId).select('+password');
+      if (!admin) {
+        return res.status(404).json({ success: false, message: 'Admin account not found.' });
+      }
+
+      const isMatch = await admin.matchPassword(currentPassword);
+      if (!isMatch) {
+        return res.status(400).json({ success: false, message: 'Current password is incorrect.' });
+      }
+
+      admin.password = newPassword;
+      await admin.save();
+    } else {
+      const admin = inMemoryAdmins.find(a => a._id === adminId || a._id === 'admin_root');
+      if (!admin) {
+        return res.status(404).json({ success: false, message: 'Admin account not found.' });
+      }
+
+      const isMatch = await bcrypt.compare(currentPassword, admin.password);
+      if (!isMatch) {
+        return res.status(400).json({ success: false, message: 'Current password is incorrect.' });
+      }
+
+      admin.password = await bcrypt.hash(newPassword, 10);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Admin password updated successfully!'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update Admin Login Credentials (Username, Email, Password)
+// @route   PUT /api/admin/update-credentials
+// @access  Private (Admin)
+exports.updateAdminCredentials = async (req, res, next) => {
+  try {
+    const { currentPassword, username, email, newPassword } = req.body;
+    const adminId = req.admin ? (req.admin._id || req.admin.id) : null;
+
+    if (!currentPassword || !username || !email) {
+      return res.status(400).json({ success: false, message: 'Current password, username, and email are required.' });
+    }
+
+    if (newPassword && newPassword.trim() !== '' && newPassword.length < 8) {
+      return res.status(400).json({ success: false, message: 'New password must be at least 8 characters long.' });
+    }
+
+    let updatedAdmin = null;
+
+    if (getIsConnected()) {
+      const admin = await Admin.findById(adminId).select('+password');
+      if (!admin) {
+        return res.status(404).json({ success: false, message: 'Admin account not found.' });
+      }
+
+      const isMatch = await admin.matchPassword(currentPassword);
+      if (!isMatch) {
+        return res.status(400).json({ success: false, message: 'Current password is incorrect.' });
+      }
+
+      const existing = await Admin.findOne({
+        _id: { $ne: adminId },
+        $or: [
+          { username: username.trim() },
+          { email: email.toLowerCase().trim() }
+        ]
+      });
+
+      if (existing) {
+        return res.status(400).json({ success: false, message: 'Username or Email is already in use by another admin.' });
+      }
+
+      admin.username = username.trim();
+      admin.email = email.toLowerCase().trim();
+      if (newPassword && newPassword.trim() !== '') {
+        admin.password = newPassword;
+      }
+      await admin.save();
+      updatedAdmin = admin;
+    } else {
+      const admin = inMemoryAdmins.find(a => a._id === adminId) || inMemoryAdmins[0];
+      if (!admin) {
+        return res.status(404).json({ success: false, message: 'Admin account not found.' });
+      }
+
+      const isMatch = await bcrypt.compare(currentPassword, admin.password);
+      if (!isMatch) {
+        return res.status(400).json({ success: false, message: 'Current password is incorrect.' });
+      }
+
+      admin.username = username.trim();
+      admin.email = email.toLowerCase().trim();
+      if (newPassword && newPassword.trim() !== '') {
+        admin.password = await bcrypt.hash(newPassword, 10);
+      }
+      updatedAdmin = admin;
+    }
+
+    const token = generateToken(updatedAdmin._id);
+
+    res.status(200).json({
+      success: true,
+      message: 'Admin login credentials updated successfully!',
+      token,
+      admin: {
+        id: updatedAdmin._id,
+        username: updatedAdmin.username,
+        email: updatedAdmin.email
+      }
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Verify QR Code Ticket for Auditorium Entry
+// @route   POST /api/admin/verify-ticket
+// @access  Private (Admin)
+exports.verifyAuditoriumTicket = async (req, res, next) => {
+  try {
+    const { ticketId, registerNumber } = req.body;
+
+    if (!ticketId && !registerNumber) {
+      return res.status(400).json({ success: false, message: 'Ticket ID or Leader Register Number is required' });
+    }
+
+    let team = null;
+
+    if (getIsConnected()) {
+      if (ticketId) {
+        team = await Team.findById(ticketId);
+      }
+      if (!team && registerNumber) {
+        team = await Team.findOne({ 'leader.registerNumber': registerNumber.trim().toUpperCase() });
+      }
+    } else {
+      if (ticketId) {
+        team = inMemoryTeams.find(t => t._id === ticketId || t.id === ticketId);
+      }
+      if (!team && registerNumber) {
+        team = inMemoryTeams.find(t => t.leader && t.leader.registerNumber === registerNumber.trim().toUpperCase());
+      }
+    }
+
+    if (!team) {
+      return res.status(404).json({ success: false, message: 'Invalid QR Ticket. No team registration found.' });
+    }
+
+    if (team.status !== 'Approved') {
+      return res.status(400).json({
+        success: false,
+        status: team.status,
+        message: `Entry Denied: Registration status is '${team.status}'. Only Approved teams are allowed entry.`,
+        data: {
+          teamName: team.teamName,
+          startupName: team.startupName || team.teamName,
+          leaderName: team.leader.name,
+          status: team.status
+        }
+      });
+    }
+
+    if (team.checkedIn) {
+      return res.status(400).json({
+        success: false,
+        isAlreadyCheckedIn: true,
+        checkedInAt: team.checkedInAt,
+        message: `DUPLICATE TICKET WARNING! Pass was already scanned and checked in at ${new Date(team.checkedInAt).toLocaleTimeString()}`,
+        data: {
+          teamName: team.teamName,
+          startupName: team.startupName || team.teamName,
+          leaderName: team.leader.name,
+          totalMembers: 1 + (team.members ? team.members.length : 0),
+          checkedInAt: team.checkedInAt
+        }
+      });
+    }
+
+    team.checkedIn = true;
+    team.checkedInAt = new Date();
+
+    if (getIsConnected()) {
+      await team.save();
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'ENTRY APPROVED! Welcome to the Auditorium.',
+      data: {
+        id: team._id,
+        teamName: team.teamName,
+        startupName: team.startupName || team.teamName,
+        leaderName: team.leader.name,
+        registerNumber: team.leader.registerNumber,
+        department: team.leader.department,
+        totalMembers: 1 + (team.members ? team.members.length : 0),
+        checkedInAt: team.checkedInAt
+      }
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Global Registration Status State
+let isRegistrationOpen = true;
+
+exports.getIsRegistrationOpen = () => isRegistrationOpen;
+
+exports.getRegistrationStatus = (req, res) => {
+  res.status(200).json({ success: true, isOpen: isRegistrationOpen });
+};
+
+exports.toggleRegistration = (req, res) => {
+  const { isOpen } = req.body;
+  if (typeof isOpen === 'boolean') {
+    isRegistrationOpen = isOpen;
+  } else {
+    isRegistrationOpen = !isRegistrationOpen;
+  }
+  res.status(200).json({
+    success: true,
+    isOpen: isRegistrationOpen,
+    message: isRegistrationOpen ? 'Registration is now OPEN.' : 'Registration is now CLOSED.'
+  });
+};
+

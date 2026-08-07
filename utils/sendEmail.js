@@ -27,16 +27,27 @@ const sendEmail = async (options) => {
       }
     });
 
+    const qrImageHtml = options.qrUrl ? `
+      <div style="text-align: center; margin: 20px 0;">
+        <div style="display: inline-block; background: #ffffff; padding: 20px; border-radius: 12px; border: 2px dashed #d97757; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+          <img src="${options.qrUrl}" alt="Auditorium Entry QR Pass" style="width: 200px; height: 200px; display: block; margin: 0 auto 10px;" />
+          <span style="font-size: 13px; font-weight: 700; color: #141413; text-transform: uppercase;">AUDITORIUM ENTRY QR PASS</span>
+          <p style="font-size: 11px; color: #64748b; margin: 4px 0 0;">Show this QR Pass at the entrance scanner for instant check-in</p>
+        </div>
+      </div>
+    ` : '';
+
     const mailOptions = {
       from: `${process.env.FROM_NAME || 'E-Cell Startup Pitching'} <${process.env.FROM_EMAIL || smtpUser}>`,
       to: options.email,
       subject: options.subject,
       html: `
-        <div style="font-family: Arial, sans-serif; background-color: #0b0f19; color: #ffffff; padding: 24px; border-radius: 8px;">
-          <h2 style="color: #06b6d4; border-bottom: 2px solid #3b82f6; padding-bottom: 8px;">Startup Pitching Competition 2026</h2>
-          <p style="font-size: 16px; line-height: 1.6; color: #e2e8f0;">${options.message.replace(/\n/g, '<br>')}</p>
-          <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 20px 0;">
-          <p style="font-size: 12px; color: #94a3b8;">Organized by Entrepreneurship Development Cell (E-Cell)</p>
+        <div style="font-family: Arial, sans-serif; background-color: #faf9f5; color: #141413; padding: 24px; border-radius: 12px; border: 1px solid #e8e6dc;">
+          <h2 style="color: #d97757; border-bottom: 2px solid #d97757; padding-bottom: 8px; margin-top: 0;">Startup Pitching Competition 2026</h2>
+          <p style="font-size: 15px; line-height: 1.6; color: #141413;">${options.message.replace(/\n/g, '<br>')}</p>
+          ${qrImageHtml}
+          <hr style="border: 0; border-top: 1px solid #e8e6dc; margin: 20px 0;">
+          <p style="font-size: 12px; color: #b0aea5;">Organized by Entrepreneurship Development Cell (E-Cell)</p>
         </div>
       `
     };

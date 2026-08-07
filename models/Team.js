@@ -13,6 +13,11 @@ const teamSchema = new mongoose.Schema({
     required: [true, 'Team Name is required'],
     trim: true
   },
+  startupName: {
+    type: String,
+    trim: true,
+    default: ''
+  },
   leader: {
     name: { type: String, required: [true, 'Leader Name is required'], trim: true },
     registerNumber: {
@@ -55,7 +60,7 @@ const teamSchema = new mongoose.Schema({
     required: [true, 'Abstract is required'],
     trim: true,
     validate: {
-      validator: function(v) {
+      validator: function (v) {
         if (!v) return false;
         const wordCount = v.trim().split(/\s+/).filter(Boolean).length;
         return wordCount <= 300;
@@ -95,7 +100,7 @@ const teamSchema = new mongoose.Schema({
 });
 
 // Helper virtual for member count
-teamSchema.virtual('totalMembers').get(function() {
+teamSchema.virtual('totalMembers').get(function () {
   return 1 + (this.members ? this.members.length : 0);
 });
 

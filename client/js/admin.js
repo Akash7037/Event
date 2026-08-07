@@ -2,6 +2,38 @@
    Admin Portal Client JavaScript - Startup Pitching Competition 2026
    ========================================================================== */
 
+// Theme Manager (Light / Dark Theme Switcher)
+function initTheme() {
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  updateThemeToggleUI(savedTheme);
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', newTheme);
+  localStorage.setItem('theme', newTheme);
+  updateThemeToggleUI(newTheme);
+}
+
+function updateThemeToggleUI(theme) {
+  const toggleBtn = document.getElementById('theme-toggle-btn');
+  const headerBtn = document.getElementById('theme-toggle-header-btn');
+
+  if (theme === 'dark') {
+    if (toggleBtn) toggleBtn.innerHTML = '<i class="fa-solid fa-sun"></i> <span id="theme-toggle-text">Light Mode</span>';
+    if (headerBtn) headerBtn.innerHTML = '<i class="fa-solid fa-sun" style="color: #f59e0b;"></i>';
+  } else {
+    if (toggleBtn) toggleBtn.innerHTML = '<i class="fa-solid fa-moon"></i> <span id="theme-toggle-text">Dark Mode</span>';
+    if (headerBtn) headerBtn.innerHTML = '<i class="fa-solid fa-moon"></i>';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
+});
+
 let currentAdminToken = localStorage.getItem('adminToken') || '';
 let selectedTeamForAction = null;
 
@@ -12,7 +44,7 @@ function showToast(message, type = 'info') {
 
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
-  
+
   let iconClass = 'fa-circle-info';
   if (type === 'success') iconClass = 'fa-circle-check';
   if (type === 'error') iconClass = 'fa-circle-xmark';
@@ -43,16 +75,31 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function showLoginView() {
-  document.getElementById('admin-login-view').style.display = 'block';
+  const main = document.getElementById('admin-main-container') || document.querySelector('main.container');
+  if (main) {
+    main.style.minHeight = 'calc(100vh - 80px)';
+    main.style.display = 'flex';
+    main.style.alignItems = 'center';
+    main.style.justifyContent = 'center';
+    main.style.padding = '0';
+  }
+  document.getElementById('admin-login-view').style.display = 'flex';
   document.getElementById('admin-dashboard-view').style.display = 'none';
   document.getElementById('admin-nav-actions').style.display = 'none';
 }
 
 function showDashboardView() {
+  const main = document.getElementById('admin-main-container') || document.querySelector('main.container');
+  if (main) {
+    main.style.minHeight = 'auto';
+    main.style.display = 'block';
+    main.style.paddingTop = '30px';
+    main.style.paddingBottom = '60px';
+  }
   document.getElementById('admin-login-view').style.display = 'none';
   document.getElementById('admin-dashboard-view').style.display = 'block';
   document.getElementById('admin-nav-actions').style.display = 'flex';
-  
+
   const savedAdminUser = localStorage.getItem('adminUser') || 'Admin';
   document.getElementById('admin-user-display').innerHTML = `<i class="fa-solid fa-user-shield"></i> ${savedAdminUser}`;
 
@@ -89,6 +136,7 @@ async function handleAdminLogin(event) {
       currentAdminToken = result.token;
       localStorage.setItem('adminToken', result.token);
       localStorage.setItem('adminUser', result.admin.username);
+      if (result.admin.email) localStorage.setItem('adminEmail', result.admin.email);
       showToast('Admin authenticated successfully!', 'success');
       showDashboardView();
     } else {
@@ -130,9 +178,76 @@ async function loadAdminStats() {
       document.getElementById('stat-pending').textContent = result.data.pending;
       document.getElementById('stat-approved').textContent = result.data.approved;
       document.getElementById('stat-rejected').textContent = result.data.rejected;
+
+      fetchRegistrationStatus();
+
+      // Fetch teams to count checked-in teams
+      const teamsRes = await fetch('/api/admin/teams', {
+        headers: { 'Authorization': `Bearer ${currentAdminToken}` }
+      });
+      const teamsData = await teamsRes.json();
+      if (teamsData.success) {
+        const checkedInCount = teamsData.data.filter(t => t.checkedIn).length;
+        const checkedInEl = document.getElementById('stat-checkedin');
+        if (checkedInEl) checkedInEl.textContent = checkedInCount;
+      }
     }
   } catch (error) {
     console.error('Failed to load stats:', error);
+  }
+}
+
+// Fetch and Toggle Global Registration Status (Open / Closed)
+async function fetchRegistrationStatus() {
+  try {
+    const res = await fetch('/api/admin/registration-status');
+    const data = await res.json();
+    if (data.success) {
+      updateRegistrationToggleUI(data.isOpen);
+    }
+  } catch (err) {
+    console.error('Failed to fetch registration status:', err);
+  }
+}
+
+function updateRegistrationToggleUI(isOpen) {
+  const btn = document.getElementById('reg-toggle-btn');
+  if (!btn) return;
+
+  if (isOpen) {
+    btn.style.background = 'var(--accent-emerald)';
+    btn.style.borderColor = 'var(--accent-emerald)';
+    btn.innerHTML = `<i class="fa-solid fa-circle-dot"></i> <span id="reg-toggle-text">Registration: OPEN</span>`;
+  } else {
+    btn.style.background = 'var(--accent-rose)';
+    btn.style.borderColor = 'var(--accent-rose)';
+    btn.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> <span id="reg-toggle-text">Registration: CLOSED</span>`;
+  }
+}
+
+async function toggleRegistrationStatus() {
+  try {
+    const btn = document.getElementById('reg-toggle-btn');
+    const currentlyOpen = btn ? btn.innerHTML.includes('OPEN') : true;
+    const nextState = !currentlyOpen;
+
+    const response = await fetch('/api/admin/toggle-registration', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${currentAdminToken}`
+      },
+      body: JSON.stringify({ isOpen: nextState })
+    });
+
+    const result = await response.json();
+    if (result.success) {
+      updateRegistrationToggleUI(result.isOpen);
+      showToast(result.message, result.isOpen ? 'success' : 'warning');
+    }
+  } catch (err) {
+    console.error('Toggle registration error:', err);
+    showToast('Failed to toggle registration status', 'error');
   }
 }
 
@@ -147,7 +262,7 @@ async function loadTeamsData() {
 
   const queryParams = new URLSearchParams({
     search,
-    status,
+    status: status === 'CheckedIn' ? 'All' : status,
     department,
     year
   });
@@ -165,8 +280,13 @@ async function loadTeamsData() {
     const result = await response.json();
 
     if (result.success) {
-      countLabel.textContent = `Showing ${result.count} team registrations`;
-      if (result.data.length === 0) {
+      let filteredData = result.data;
+      if (status === 'CheckedIn') {
+        filteredData = filteredData.filter(t => t.checkedIn);
+      }
+
+      countLabel.textContent = `Showing ${filteredData.length} team registrations`;
+      if (filteredData.length === 0) {
         tbody.innerHTML = `
           <tr>
             <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 40px;">
@@ -177,7 +297,7 @@ async function loadTeamsData() {
         return;
       }
 
-      tbody.innerHTML = result.data.map(team => {
+      tbody.innerHTML = filteredData.map(team => {
         let badgeClass = 'badge-pending';
         let statusIcon = 'fa-clock';
         if (team.status === 'Approved') {
@@ -192,20 +312,30 @@ async function loadTeamsData() {
           month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
         });
 
+        const checkInBadge = team.checkedIn ? `
+          <div style="margin-top: 4px;">
+            <span class="badge badge-approved" style="font-size: 11px; padding: 2px 8px; background: rgba(16, 185, 129, 0.15); border-color: var(--accent-emerald);">
+              <i class="fa-solid fa-qrcode"></i> Present (${new Date(team.checkedInAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})})
+            </span>
+          </div>
+        ` : '';
+
         return `
           <tr>
-            <td style="font-weight: 700; color: #ffffff;">${team.teamName}</td>
+            <td style="font-weight: 700; color: var(--text-primary);">${team.teamName}</td>
+            <td style="color: var(--accent-terracotta); font-weight: 600;">${team.startupName || team.teamName}</td>
             <td>
               <div style="font-weight: 600;">${team.leader.name}</div>
               <div style="font-size: 12px; color: var(--text-muted);">${team.leader.registerNumber} • ${team.leader.phone}</div>
             </td>
-            <td>${team.leader.department}<br><span style="font-size: 12px; color: var(--accent-cyan);">${team.leader.year}</span></td>
-            <td><span style="color: var(--accent-cyan); font-weight: 600;">${team.innovationDomain}</span></td>
+            <td>${team.leader.department}<br><span style="font-size: 12px; color: var(--accent-terracotta);">${team.leader.year}</span></td>
+            <td><span style="color: var(--accent-terracotta); font-weight: 600;">${team.innovationDomain}</span></td>
             <td style="font-size: 13px; color: var(--text-secondary);">${dateStr}</td>
             <td>
               <span class="badge ${badgeClass}">
                 <i class="fa-solid ${statusIcon}"></i> ${team.status}
               </span>
+              ${checkInBadge}
             </td>
             <td>
               <button class="btn-secondary" style="padding: 6px 14px; font-size: 13px;" onclick="openTeamDetailsModal('${team._id}')">
@@ -249,8 +379,8 @@ async function openTeamDetailsModal(teamId) {
     let membersHtml = '';
     if (team.members && team.members.length > 0) {
       membersHtml = team.members.map((m, idx) => `
-        <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: var(--radius-md); margin-top: 8px;">
-          <div style="font-weight: 600; color: var(--accent-cyan);">Member ${idx + 2}: ${m.name}</div>
+        <div style="background: var(--bg-secondary); padding: 12px; border-radius: var(--radius-md); margin-top: 8px;">
+          <div style="font-weight: 600; color: var(--accent-terracotta);">Member ${idx + 2}: ${m.name}</div>
           <div style="font-size: 13px; color: var(--text-secondary);">
             Reg No: ${m.registerNumber || 'N/A'} | Dept: ${m.department || 'N/A'} | Year: ${m.year || 'N/A'}
           </div>
@@ -265,8 +395,8 @@ async function openTeamDetailsModal(teamId) {
       <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 20px;">
         
         <!-- Leader Info -->
-        <div style="background: rgba(0,0,0,0.3); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
-          <h4 style="color: var(--accent-cyan); margin-bottom: 10px;"><i class="fa-solid fa-user-astronaut"></i> Leader Details</h4>
+        <div style="background: var(--bg-secondary); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+          <h4 style="color: var(--accent-terracotta); margin-bottom: 10px;"><i class="fa-solid fa-user-astronaut"></i> Leader Details</h4>
           <div style="font-size: 14px; margin-bottom: 4px;"><strong>Name:</strong> ${team.leader.name}</div>
           <div style="font-size: 14px; margin-bottom: 4px;"><strong>Register No:</strong> ${team.leader.registerNumber}</div>
           <div style="font-size: 14px; margin-bottom: 4px;"><strong>Department:</strong> ${team.leader.department}</div>
@@ -276,8 +406,8 @@ async function openTeamDetailsModal(teamId) {
         </div>
 
         <!-- Team Members -->
-        <div style="background: rgba(0,0,0,0.3); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
-          <h4 style="color: var(--accent-cyan); margin-bottom: 10px;"><i class="fa-solid fa-users"></i> Team Members</h4>
+        <div style="background: var(--bg-secondary); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+          <h4 style="color: var(--accent-terracotta); margin-bottom: 10px;"><i class="fa-solid fa-users"></i> Team Members</h4>
           ${membersHtml}
         </div>
 
@@ -285,7 +415,8 @@ async function openTeamDetailsModal(teamId) {
 
       <!-- Domain & Pitch Details -->
       <div style="margin-bottom: 20px;">
-        <h4 style="color: var(--text-primary); margin-bottom: 6px;">Innovation Domain: <span style="color: var(--accent-cyan);">${team.innovationDomain}</span></h4>
+        <h4 style="color: var(--text-primary); font-size: 16px; margin-bottom: 6px;">Startup Name (Project Name): <span style="color: var(--accent-terracotta); font-weight: 700;">${team.startupName || team.teamName}</span></h4>
+        <h5 style="color: var(--text-secondary); margin-bottom: 12px;">Team Name: <span style="color: var(--text-primary); font-weight: 600;">${team.teamName}</span> | Innovation Domain: <span style="color: var(--accent-terracotta); font-weight: 600;">${team.innovationDomain}</span></h5>
         <div style="margin-bottom: 14px;">
           <h5 style="color: var(--text-secondary); margin-bottom: 4px;">Problem Statement:</h5>
           <p style="font-size: 14px; background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">${team.problemStatement}</p>
@@ -299,12 +430,15 @@ async function openTeamDetailsModal(teamId) {
       <!-- Files Inspection & Verification Area -->
       <div style="background: rgba(6, 182, 212, 0.05); border: 1px solid rgba(6, 182, 212, 0.3); padding: 20px; border-radius: var(--radius-md); margin-bottom: 16px;">
         <h4 style="color: var(--accent-cyan); margin-bottom: 12px;"><i class="fa-solid fa-folder-open"></i> Submissions & Eureka Verification</h4>
-        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
           <a href="${team.pptFile}" target="_blank" download class="btn-secondary" style="text-decoration: none;">
             <i class="fa-solid fa-file-powerpoint" style="color: var(--accent-amber);"></i> Download Presentation PPT
           </a>
+          <button type="button" class="btn-primary" style="padding: 8px 16px; font-size: 13px;" onclick="openImageLightbox('${team.eurekaScreenshot}', 'Eureka Screenshot - ${encodeURIComponent(team.teamName)}')">
+            <i class="fa-solid fa-expand"></i> Preview Screenshot Lightbox
+          </button>
           <a href="${team.eurekaScreenshot}" target="_blank" class="btn-secondary" style="text-decoration: none; border-color: var(--accent-cyan);">
-            <i class="fa-solid fa-image" style="color: var(--accent-cyan);"></i> View Eureka Screenshot Proof
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Raw Screenshot
           </a>
         </div>
         <p style="font-size: 12px; color: var(--text-muted); margin-top: 10px;">
@@ -451,3 +585,437 @@ async function exportRegistrationsCsv() {
     showToast('Network error during CSV export', 'error');
   }
 }
+
+/* ==========================================================================
+   PASSWORD MANAGEMENT & SECURITY CONTROLS
+   ========================================================================== */
+
+// Toggle Password Field Visibility (Show/Hide)
+function togglePasswordVisibility(inputId, iconId) {
+  const inputEl = document.getElementById(inputId);
+  const iconEl = document.getElementById(iconId);
+  if (!inputEl || !iconEl) return;
+
+  if (inputEl.type === 'password') {
+    inputEl.type = 'text';
+    iconEl.className = 'fa-solid fa-eye-slash';
+  } else {
+    inputEl.type = 'password';
+    iconEl.className = 'fa-solid fa-eye';
+  }
+}
+
+// Open Edit Credentials Modal
+function openEditCredentialsModal() {
+  const modal = document.getElementById('edit-credentials-modal');
+  if (modal) {
+    modal.classList.add('active');
+    modal.style.display = 'flex';
+    document.getElementById('edit-credentials-form').reset();
+
+    const savedUser = localStorage.getItem('adminUser') || 'admin';
+    const savedEmail = localStorage.getItem('adminEmail') || 'admin@ecell.edu';
+
+    const usernameInput = document.getElementById('editAdminUsername');
+    const emailInput = document.getElementById('editAdminEmail');
+    if (usernameInput) usernameInput.value = savedUser;
+    if (emailInput) emailInput.value = savedEmail;
+
+    const strengthBox = document.getElementById('password-strength-box');
+    if (strengthBox) strengthBox.style.display = 'none';
+
+    ['req-length', 'req-uppercase', 'req-number', 'req-symbol'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.className = 'password-req-item';
+        const icon = el.querySelector('i');
+        if (icon) icon.className = 'fa-solid fa-circle-dot';
+      }
+    });
+
+    const confirmMsg = document.getElementById('confirm-password-msg');
+    if (confirmMsg) confirmMsg.style.display = 'none';
+  }
+}
+
+// Close Edit Credentials Modal
+function closeEditCredentialsModal() {
+  const modal = document.getElementById('edit-credentials-modal');
+  if (modal) {
+    modal.classList.remove('active');
+    modal.style.display = 'none';
+  }
+}
+
+// Real-Time Password Strength Checker
+function checkPasswordStrength() {
+  const val = document.getElementById('newAdminPassword').value;
+  const strengthBox = document.getElementById('password-strength-box');
+  const strengthText = document.getElementById('password-strength-text');
+  const strengthFill = document.getElementById('password-strength-fill');
+
+  if (!val) {
+    if (strengthBox) strengthBox.style.display = 'none';
+    updateReqStatus('req-length', false);
+    updateReqStatus('req-uppercase', false);
+    updateReqStatus('req-number', false);
+    updateReqStatus('req-symbol', false);
+    return;
+  }
+
+  if (strengthBox) strengthBox.style.display = 'flex';
+
+  const hasLength = val.length >= 8;
+  const hasUppercase = /[A-Z]/.test(val);
+  const hasNumber = /[0-9]/.test(val);
+  const hasSymbol = /[^A-Za-z0-9]/.test(val);
+
+  updateReqStatus('req-length', hasLength);
+  updateReqStatus('req-uppercase', hasUppercase);
+  updateReqStatus('req-number', hasNumber);
+  updateReqStatus('req-symbol', hasSymbol);
+
+  const passedCount = [hasLength, hasUppercase, hasNumber, hasSymbol].filter(Boolean).length;
+
+  if (passedCount <= 2) {
+    if (strengthText) {
+      strengthText.textContent = 'Weak';
+      strengthText.style.color = 'var(--accent-rose)';
+    }
+    if (strengthFill) strengthFill.className = 'password-strength-fill strength-weak';
+  } else if (passedCount === 3) {
+    if (strengthText) {
+      strengthText.textContent = 'Medium';
+      strengthText.style.color = 'var(--accent-amber)';
+    }
+    if (strengthFill) strengthFill.className = 'password-strength-fill strength-medium';
+  } else {
+    if (strengthText) {
+      strengthText.textContent = 'Strong';
+      strengthText.style.color = 'var(--accent-emerald)';
+    }
+    if (strengthFill) strengthFill.className = 'password-strength-fill strength-strong';
+  }
+
+  checkPasswordMatch();
+}
+
+function updateReqStatus(reqId, isValid) {
+  const el = document.getElementById(reqId);
+  if (!el) return;
+  const icon = el.querySelector('i');
+  if (isValid) {
+    el.classList.add('valid');
+    if (icon) icon.className = 'fa-solid fa-circle-check';
+  } else {
+    el.classList.remove('valid');
+    if (icon) icon.className = 'fa-solid fa-circle-dot';
+  }
+}
+
+// Check Confirm Password Match
+function checkPasswordMatch() {
+  const newPass = document.getElementById('newAdminPassword').value;
+  const confirmPass = document.getElementById('confirmAdminPassword').value;
+  const confirmMsg = document.getElementById('confirm-password-msg');
+
+  if (!confirmPass) {
+    if (confirmMsg) confirmMsg.style.display = 'none';
+    return;
+  }
+
+  if (confirmMsg) {
+    confirmMsg.style.display = 'block';
+    if (newPass === confirmPass) {
+      confirmMsg.textContent = '✓ Passwords match';
+      confirmMsg.style.color = 'var(--accent-emerald)';
+    } else {
+      confirmMsg.textContent = '✗ Passwords do not match';
+      confirmMsg.style.color = 'var(--accent-rose)';
+    }
+  }
+}
+
+// Handle Admin Credentials & Password Update Submission
+async function handleAdminUpdateCredentials(event) {
+  event.preventDefault();
+
+  const currentPassword = document.getElementById('currentAdminPassword').value;
+  const username = document.getElementById('editAdminUsername').value.trim();
+  const email = document.getElementById('editAdminEmail').value.trim();
+  const newPassword = document.getElementById('newAdminPassword').value;
+  const confirmPassword = document.getElementById('confirmAdminPassword').value;
+  const submitBtn = document.getElementById('edit-cred-submit-btn');
+
+  if (!currentPassword || !username || !email) {
+    showToast('Current password, username, and email are required', 'warning');
+    return;
+  }
+
+  if (newPassword && newPassword !== confirmPassword) {
+    showToast('New passwords do not match', 'warning');
+    return;
+  }
+
+  if (newPassword && newPassword.length < 8) {
+    showToast('New password must be at least 8 characters long', 'warning');
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving...`;
+
+  try {
+    const response = await fetch('/api/admin/update-credentials', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${currentAdminToken}`
+      },
+      body: JSON.stringify({ currentPassword, username, email, newPassword })
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      currentAdminToken = result.token;
+      localStorage.setItem('adminToken', result.token);
+      localStorage.setItem('adminUser', result.admin.username);
+      localStorage.setItem('adminEmail', result.admin.email);
+
+      const userDisplay = document.getElementById('admin-user-display');
+      if (userDisplay) {
+        userDisplay.innerHTML = `<i class="fa-solid fa-user-shield"></i> ${result.admin.username}`;
+      }
+
+      showToast(result.message || 'Admin credentials updated successfully!', 'success');
+      closeEditCredentialsModal();
+    } else {
+      showToast(result.message || 'Failed to update admin credentials', 'error');
+    }
+  } catch (error) {
+    console.error('Update credentials error:', error);
+    showToast('Network error while updating credentials', 'error');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Save Credentials`;
+  }
+}
+
+// Open Image / Document Lightbox Preview Modal
+function openImageLightbox(fileUrl, title = 'Eureka Screenshot Proof') {
+  const modal = document.getElementById('image-lightbox-modal');
+  const bodyContent = document.getElementById('lightbox-body-content');
+  const titleEl = document.getElementById('lightbox-title');
+  if (!modal || !bodyContent) return;
+
+  if (titleEl) titleEl.textContent = decodeURIComponent(title);
+
+  const isPdf = fileUrl.toLowerCase().endsWith('.pdf');
+
+  if (isPdf) {
+    bodyContent.innerHTML = `
+      <iframe src="${fileUrl}" style="width: 80vw; height: 70vh; border: none; border-radius: var(--radius-md);"></iframe>
+    `;
+  } else {
+    bodyContent.innerHTML = `
+      <img src="${fileUrl}" alt="Verification Proof" id="lightbox-image">
+    `;
+  }
+
+  modal.classList.add('active');
+}
+
+function closeImageLightbox(event) {
+  const modal = document.getElementById('image-lightbox-modal');
+  if (modal) {
+    modal.classList.remove('active');
+  }
+}
+
+/* ==========================================================================
+   AUDITORIUM ENTRY QR SCANNER & TICKET VERIFICATION CONTROLS
+   ========================================================================== */
+let html5QrCodeScanner = null;
+
+function openQrScannerModal() {
+  const modal = document.getElementById('qr-scanner-modal');
+  const resultBox = document.getElementById('qr-scan-result');
+  const readerContainer = document.getElementById('qr-reader-container');
+  if (!modal) return;
+
+  if (readerContainer) {
+    readerContainer.innerHTML = `<div id="qr-reader" style="width: 100%;"></div>`;
+  }
+
+  modal.classList.add('active');
+  if (resultBox) resultBox.style.display = 'none';
+
+  startLiveQrScanner();
+}
+
+function closeQrScannerModal() {
+  const modal = document.getElementById('qr-scanner-modal');
+  if (modal) {
+    modal.classList.remove('active');
+  }
+  stopLiveQrScanner();
+}
+
+function startLiveQrScanner() {
+  const readerElement = document.getElementById('qr-reader');
+  if (!readerElement) return;
+
+  stopLiveQrScanner();
+
+  if (typeof Html5Qrcode === 'undefined') {
+    document.getElementById('qr-reader-container').innerHTML = `
+      <div style="padding: 24px; color: var(--text-primary); font-size: 13px; text-align: center;">
+        <i class="fa-solid fa-camera" style="font-size: 32px; margin-bottom: 8px; color: var(--accent-terracotta);"></i>
+        <p>Live camera scanner ready. Enter Register Number manually below or scan using phone camera.</p>
+      </div>
+    `;
+    return;
+  }
+
+  html5QrCodeScanner = new Html5Qrcode('qr-reader');
+  const config = { fps: 10, qrbox: { width: 220, height: 220 } };
+
+  html5QrCodeScanner.start(
+    { facingMode: 'environment' },
+    config,
+    (decodedText) => {
+      handleQrCodeScanned(decodedText);
+    },
+    (errorMessage) => {
+      // Ignore scanning frame errors
+    }
+  ).catch(err => {
+    console.warn('Camera access notice:', err);
+    document.getElementById('qr-reader-container').innerHTML = `
+      <div style="padding: 24px; color: var(--text-primary); font-size: 13px; text-align: center;">
+        <i class="fa-solid fa-camera" style="font-size: 32px; margin-bottom: 8px; color: var(--accent-terracotta);"></i>
+        <p style="margin-bottom: 8px;">Camera offline or browser permission needed.</p>
+        <p style="color: var(--text-secondary); font-size: 12px;">You can type Leader Register Number manually below to verify entry!</p>
+      </div>
+    `;
+  });
+}
+
+function stopLiveQrScanner() {
+  if (html5QrCodeScanner) {
+    try {
+      html5QrCodeScanner.stop().then(() => {
+        try { html5QrCodeScanner.clear(); } catch(e) {}
+        html5QrCodeScanner = null;
+      }).catch(e => { html5QrCodeScanner = null; });
+    } catch(e) {
+      html5QrCodeScanner = null;
+    }
+  }
+}
+
+async function handleQrCodeScanned(scannedText) {
+  try {
+    let ticketId = null;
+    let registerNumber = null;
+
+    try {
+      const parsed = JSON.parse(scannedText);
+      ticketId = parsed.ticketId || parsed.id || null;
+      registerNumber = parsed.registerNumber || null;
+    } catch(e) {
+      ticketId = scannedText.trim();
+    }
+
+    verifyTicketPayload({ ticketId, registerNumber });
+
+  } catch (err) {
+    console.error('QR decode error:', err);
+    showToast('Invalid QR Code format', 'error');
+  }
+}
+
+async function verifyManualTicket() {
+  const input = document.getElementById('manual-reg-input');
+  if (!input || !input.value.trim()) {
+    showToast('Please enter Leader Register Number', 'warning');
+    return;
+  }
+  verifyTicketPayload({ registerNumber: input.value.trim() });
+}
+
+async function verifyTicketPayload(payload) {
+  const resultBox = document.getElementById('qr-scan-result');
+  if (!resultBox) return;
+
+  resultBox.style.display = 'block';
+  resultBox.innerHTML = `
+    <div style="text-align: center; color: var(--text-secondary);">
+      <i class="fa-solid fa-spinner fa-spin" style="font-size: 22px;"></i>
+      <p style="margin-top: 6px; font-size: 13px;">Verifying ticket with database...</p>
+    </div>
+  `;
+
+  try {
+    const response = await fetch('/api/admin/verify-ticket', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${currentAdminToken}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const resData = await response.json();
+
+    if (resData.success) {
+      const data = resData.data;
+      resultBox.style.background = 'rgba(21, 128, 61, 0.12)';
+      resultBox.style.border = '1.5px solid var(--accent-emerald)';
+      resultBox.innerHTML = `
+        <div style="color: var(--accent-emerald); font-weight: 800; font-size: 16px; margin-bottom: 6px;">
+          <i class="fa-solid fa-circle-check"></i> ${resData.message}
+        </div>
+        <div style="font-size: 14px; font-weight: 700; color: var(--text-primary);">${data.startupName || data.teamName}</div>
+        <div style="font-size: 13px; color: var(--text-secondary);">Team: ${data.teamName} | Leader: ${data.leaderName} (${data.registerNumber})</div>
+        <div style="font-size: 13px; font-weight: 700; color: var(--accent-emerald); margin-top: 6px;">
+          👥 Total Members Allowed Entry: ${data.totalMembers}
+        </div>
+      `;
+      showToast('ENTRY APPROVED!', 'success');
+      loadAdminStats();
+      loadTeamsData();
+    } else if (resData.isAlreadyCheckedIn) {
+      const data = resData.data;
+      resultBox.style.background = 'rgba(217, 119, 6, 0.12)';
+      resultBox.style.border = '1.5px solid var(--accent-amber)';
+      resultBox.innerHTML = `
+        <div style="color: var(--accent-amber); font-weight: 800; font-size: 15px; margin-bottom: 6px;">
+          <i class="fa-solid fa-triangle-exclamation"></i> DUPLICATE TICKET WARNING
+        </div>
+        <p style="font-size: 13px; color: var(--text-primary); margin-bottom: 4px;">Pass was already scanned and checked in at <strong>${new Date(data.checkedInAt).toLocaleTimeString()}</strong>.</p>
+        <div style="font-size: 13px; color: var(--text-secondary);">Startup: ${data.startupName} | Leader: ${data.leaderName}</div>
+      `;
+      showToast('DUPLICATE TICKET WARNING', 'warning');
+    } else {
+      resultBox.style.background = 'rgba(220, 38, 38, 0.12)';
+      resultBox.style.border = '1.5px solid var(--accent-rose)';
+      resultBox.innerHTML = `
+        <div style="color: var(--accent-rose); font-weight: 800; font-size: 15px; margin-bottom: 4px;">
+          <i class="fa-solid fa-circle-xmark"></i> ENTRY DENIED
+        </div>
+        <p style="font-size: 13px; color: var(--text-primary);">${resData.message}</p>
+      `;
+      showToast(resData.message || 'Ticket verification failed', 'error');
+    }
+
+  } catch (error) {
+    console.error('Ticket verification error:', error);
+    resultBox.style.background = 'rgba(220, 38, 38, 0.12)';
+    resultBox.style.border = '1.5px solid var(--accent-rose)';
+    resultBox.innerHTML = `<p style="color: var(--accent-rose); font-size: 13px;">Network error verifying ticket.</p>`;
+  }
+}
+
+

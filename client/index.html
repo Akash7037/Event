@@ -1,15 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Startup Pitching Competition 2026 | E-Cell</title>
-  <meta name="description" content="Official registration portal for Intra-College Startup Pitching Competition organized by Entrepreneurship Development Cell (E-Cell).">
+  <meta name="description"
+    content="Official registration portal for Intra-College Startup Pitching Competition organized by Entrepreneurship Development Cell (E-Cell).">
   <!-- Google Fonts & Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
+
+  <!-- Dynamic Background Glowing Orbs -->
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
 
   <!-- Toast Notification Container -->
   <div id="toast-container"></div>
@@ -17,13 +25,19 @@
   <!-- Navigation Bar -->
   <header class="navbar">
     <div class="container nav-container">
-      <a href="index.html" class="brand">
-        <div class="brand-icon">E</div>
-        <div class="brand-text">
-          <h1>E-CELL</h1>
-          <span>Startup Pitch 2026</span>
-        </div>
-      </a>
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <a href="index.html" class="brand">
+          <div class="brand-icon">E</div>
+          <div class="brand-text">
+            <h1>E-CELL</h1>
+            <span>Startup Pitch 2026</span>
+          </div>
+        </a>
+        <button class="theme-toggle-header-btn" id="theme-toggle-header-btn" onclick="toggleTheme()"
+          title="Toggle Dark/Light Mode">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+      </div>
       <nav class="nav-links">
         <button class="nav-btn active" id="tab-register-btn" onclick="switchTab('register')">
           <i class="fa-solid fa-pen-to-square"></i> Register
@@ -37,6 +51,10 @@
         <a href="admin.html" class="nav-btn">
           <i class="fa-solid fa-user-shield"></i> Admin Portal
         </a>
+        <button class="nav-btn theme-toggle-btn" id="theme-toggle-btn" onclick="toggleTheme()"
+          title="Toggle Dark/Light Mode">
+          <i class="fa-solid fa-moon"></i> <span id="theme-toggle-text">Dark Mode</span>
+        </button>
       </nav>
     </div>
   </header>
@@ -47,7 +65,8 @@
     <!-- Hero Header -->
     <section class="hero-section">
       <h1 class="hero-title">Intra-College Startup Pitching Competition</h1>
-      <p class="hero-subtitle">Organized by Entrepreneurship Development Cell (E-Cell). Turn your revolutionary idea into reality and compete for prize pools & mentorship.</p>
+      <p class="hero-subtitle">Organized by Entrepreneurship Development Cell (E-Cell). Turn your revolutionary idea
+        into reality and compete for prize pools & mentorship.</p>
       <div class="hero-badges">
         <span class="hero-badge"><i class="fa-solid fa-user-graduate"></i> Only 2nd & 3rd Year Students</span>
         <span class="hero-badge"><i class="fa-solid fa-users"></i> Team Size: 1 to 3 Members</span>
@@ -57,7 +76,27 @@
 
     <!-- SECTION 1: REGISTRATION TAB -->
     <div id="view-register" class="tab-view active">
-      
+
+      <!-- PROGRESS STEPPER BAR -->
+      <div class="stepper-bar">
+        <div class="stepper-step active" id="step-1-indicator">
+          <span class="stepper-number">1</span>
+          <span>Eureka Proof</span>
+        </div>
+        <div class="stepper-step" id="step-2-indicator">
+          <span class="stepper-number">2</span>
+          <span>Startup & Team</span>
+        </div>
+        <div class="stepper-step" id="step-3-indicator">
+          <span class="stepper-number">3</span>
+          <span>Pitch Abstract</span>
+        </div>
+        <div class="stepper-step" id="step-4-indicator">
+          <span class="stepper-number">4</span>
+          <span>Uploads & Submit</span>
+        </div>
+      </div>
+
       <!-- MANDATORY EUREKA REGISTRATION CALLOUT CARD -->
       <div class="glass-card eureka-card">
         <div class="card-header" style="border-bottom: none; margin-bottom: 12px; padding-bottom: 0;">
@@ -67,10 +106,21 @@
           <span class="eureka-badge">Step 1 Required</span>
         </div>
         <p style="font-size: 15px; color: var(--text-primary); margin-bottom: 12px;">
-          BEFORE submitting your competition registration, every team <strong>MUST</strong> first register for the <strong>Eureka Competition</strong>.
+          BEFORE submitting your competition registration, every team <strong>MUST</strong> first register for the
+          <strong>Eureka Competition</strong>.
         </p>
+
+        <div style="margin: 14px 0 18px;">
+          <a href="https://www.ecell.in/eureka/register" target="_blank" rel="noopener noreferrer" class="btn-primary"
+            style="display: inline-flex; align-items: center; gap: 8px; width: auto; text-decoration: none; padding: 10px 22px; font-weight: 600;">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Eureka Registration Portal
+            (ecell.in/eureka/register)
+          </a>
+        </div>
+
         <p style="font-size: 14px; color: var(--text-secondary);">
-          During Eureka registration, when prompted with the question <strong style="color: #ffffff;">"Where did you find about us?"</strong>, you MUST enter our exact NEC ID:
+          During Eureka registration, when prompted with the question <strong style="color: var(--text-primary);">"Where
+            did you find about us?"</strong>, you MUST select NEC and enter our exact NEC ID:
         </p>
 
         <div class="nec-code-box">
@@ -81,13 +131,14 @@
         </div>
 
         <p style="font-size: 13px; color: var(--accent-amber); font-weight: 500;">
-          <i class="fa-solid fa-circle-info"></i> After completing Eureka registration, take a screenshot clearly showing the NEC ID and upload it below. Registration cannot be completed without this screenshot!
+          <i class="fa-solid fa-circle-info"></i> After completing Eureka registration, take a screenshot clearly
+          showing the NEC ID and upload it below. Registration cannot be completed without this screenshot!
         </p>
       </div>
 
       <!-- STUDENT REGISTRATION FORM -->
       <form id="registration-form" onsubmit="handleRegistrationSubmit(event)" enctype="multipart/form-data">
-        
+
         <!-- Team Information Card -->
         <div class="glass-card">
           <div class="card-header">
@@ -96,7 +147,7 @@
           <div class="form-grid full">
             <div class="form-group">
               <label for="teamName">Team Name <span class="required">*</span></label>
-              <input type="text" id="teamName" name="teamName" placeholder="e.g. Quantum Tech Creators" required>
+              <input type="text" id="teamName" name="teamName" placeholder="e.g. Innovators Squad" required>
             </div>
           </div>
         </div>
@@ -156,17 +207,20 @@
               <button type="button" class="btn-secondary" id="add-member2-btn" onclick="toggleMember(2, true)">
                 <i class="fa-solid fa-plus"></i> Add Member 2
               </button>
-              <button type="button" class="btn-secondary" id="add-member3-btn" onclick="toggleMember(3, true)" style="display: none;">
+              <button type="button" class="btn-secondary" id="add-member3-btn" onclick="toggleMember(3, true)"
+                style="display: none;">
                 <i class="fa-solid fa-plus"></i> Add Member 3
               </button>
             </div>
           </div>
 
           <!-- Member 2 Section -->
-          <div id="member2-section" style="display: none; padding-top: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px;">
+          <div id="member2-section"
+            style="display: none; padding-top: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
               <h3 style="font-size: 16px; color: var(--accent-cyan);">Member 2 Details</h3>
-              <button type="button" class="btn-secondary" style="padding: 4px 12px; font-size: 12px;" onclick="toggleMember(2, false)">
+              <button type="button" class="btn-secondary" style="padding: 4px 12px; font-size: 12px;"
+                onclick="toggleMember(2, false)">
                 <i class="fa-solid fa-trash"></i> Remove
               </button>
             </div>
@@ -208,7 +262,8 @@
           <div id="member3-section" style="display: none; padding-top: 10px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
               <h3 style="font-size: 16px; color: var(--accent-cyan);">Member 3 Details</h3>
-              <button type="button" class="btn-secondary" style="padding: 4px 12px; font-size: 12px;" onclick="toggleMember(3, false)">
+              <button type="button" class="btn-secondary" style="padding: 4px 12px; font-size: 12px;"
+                onclick="toggleMember(3, false)">
                 <i class="fa-solid fa-trash"></i> Remove
               </button>
             </div>
@@ -254,6 +309,11 @@
           </div>
           <div class="form-grid full">
             <div class="form-group">
+              <label for="startupName">Startup Name (Project Name) <span class="required">*</span></label>
+              <input type="text" id="startupName" name="startupName"
+                placeholder="e.g. EcoCharge Solutions (Solar IoT Pitch)" required>
+            </div>
+            <div class="form-group">
               <label for="innovationDomain">Innovation Domain <span class="required">*</span></label>
               <select id="innovationDomain" name="innovationDomain" required>
                 <option value="">-- Select Domain --</option>
@@ -270,14 +330,17 @@
             </div>
             <div class="form-group">
               <label for="problemStatement">Problem Statement <span class="required">*</span></label>
-              <textarea id="problemStatement" name="problemStatement" placeholder="Describe the real-world problem your startup aims to solve..." required></textarea>
+              <textarea id="problemStatement" name="problemStatement"
+                placeholder="Describe the real-world problem your startup aims to solve..." required></textarea>
             </div>
             <div class="form-group">
               <label for="abstract">
                 <span>Abstract <span class="required">*</span></span>
                 <span class="word-count" id="abstract-word-count">0 / 300 words</span>
               </label>
-              <textarea id="abstract" name="abstract" placeholder="Provide a concise abstract of your startup idea (Maximum 300 words)..." oninput="handleAbstractWordCount()" required></textarea>
+              <textarea id="abstract" name="abstract"
+                placeholder="Provide a concise abstract of your startup idea (Maximum 300 words)..."
+                oninput="handleAbstractWordCount()" required></textarea>
             </div>
           </div>
         </div>
@@ -288,15 +351,16 @@
             <h2><i class="fa-solid fa-cloud-arrow-up"></i> Document & Verification Uploads</h2>
           </div>
           <div class="form-grid">
-            
+
             <!-- Upload PPT -->
             <div class="form-group">
               <label>Upload Presentation PPT <span class="required">*</span></label>
               <div class="upload-dropzone" id="ppt-dropzone" onclick="document.getElementById('pptFile').click()">
                 <i class="fa-solid fa-file-powerpoint upload-icon"></i>
                 <div class="upload-text">Click or Drag & Drop PPT File</div>
-                <div class="upload-hint">Allowed: .ppt, .pptx (Max 20MB)</div>
-                <input type="file" id="pptFile" name="pptFile" accept=".ppt,.pptx" style="display:none;" onchange="handleFileSelect(this, 'ppt-preview', 20)">
+                <div class="upload-hint">Allowed: .ppt, .pptx (Max 10MB)</div>
+                <input type="file" id="pptFile" name="pptFile" accept=".ppt,.pptx" style="display:none;"
+                  onchange="handleFileSelect(this, 'ppt-preview', 10)">
               </div>
               <div id="ppt-preview"></div>
             </div>
@@ -304,11 +368,13 @@
             <!-- Upload Eureka Screenshot -->
             <div class="form-group">
               <label>Upload Eureka Screenshot <span class="required">*</span></label>
-              <div class="upload-dropzone" id="screenshot-dropzone" onclick="document.getElementById('eurekaScreenshot').click()">
+              <div class="upload-dropzone" id="screenshot-dropzone"
+                onclick="document.getElementById('eurekaScreenshot').click()">
                 <i class="fa-solid fa-file-image upload-icon"></i>
                 <div class="upload-text">Click or Drag Screenshot Proof</div>
-                <div class="upload-hint">Allowed: .png, .jpg, .jpeg, .pdf (Max 10MB)</div>
-                <input type="file" id="eurekaScreenshot" name="eurekaScreenshot" accept=".png,.jpg,.jpeg,.pdf" style="display:none;" onchange="handleFileSelect(this, 'screenshot-preview', 10)">
+                <div class="upload-hint">Allowed: .png, .jpg, .jpeg, .pdf (Max 5MB)</div>
+                <input type="file" id="eurekaScreenshot" name="eurekaScreenshot" accept=".png,.jpg,.jpeg,.pdf"
+                  style="display:none;" onchange="handleFileSelect(this, 'screenshot-preview', 5)">
               </div>
               <div id="screenshot-preview"></div>
             </div>
@@ -331,8 +397,60 @@
             <i class="fa-solid fa-paper-plane"></i> Submit Registration
           </button>
         </div>
-
       </form>
+
+      <!-- FAQ ACCORDION SECTION -->
+      <div class="glass-card" style="margin-top: 30px;">
+        <div class="card-header">
+          <h2><i class="fa-solid fa-circle-question"></i> Frequently Asked Questions</h2>
+        </div>
+        <div class="faq-container">
+          <div class="faq-item">
+            <button type="button" class="faq-question" onclick="toggleFaq(this)">
+              <span>What is the NEC ID and where do I enter it?</span>
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="faq-answer">
+              NEC ID is our official Referral Code (<strong>NEC2621509</strong>). When registering on the Eureka portal
+              (<a href="https://www.ecell.in/eureka/register" target="_blank"
+                style="color: var(--accent-cyan);">ecell.in/eureka/register</a>), select <em>"Where did you find about
+                us?"</em> and paste <strong>NEC2621509</strong>. Take a screenshot showing this selection as proof!
+            </div>
+          </div>
+          <div class="faq-item">
+            <button type="button" class="faq-question" onclick="toggleFaq(this)">
+              <span>Who is eligible to participate in the competition?</span>
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="faq-answer">
+              Only 2nd Year and 3rd Year undergraduate students from all engineering and technology departments are
+              eligible to form teams (1 to 3 members per team).
+            </div>
+          </div>
+          <div class="faq-item">
+            <button type="button" class="faq-question" onclick="toggleFaq(this)">
+              <span>What are the file size and format constraints?</span>
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="faq-answer">
+              - <strong>Presentation PPT</strong>: Maximum <strong>10 MB</strong> (Formats: <code>.ppt</code>,
+              <code>.pptx</code>)<br>
+              - <strong>Eureka Proof Screenshot</strong>: Maximum <strong>5 MB</strong> (Formats: <code>.png</code>,
+              <code>.jpg</code>, <code>.jpeg</code>, <code>.pdf</code>)
+            </div>
+          </div>
+          <div class="faq-item">
+            <button type="button" class="faq-question" onclick="toggleFaq(this)">
+              <span>How can we track our application approval status?</span>
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="faq-answer">
+              Click on the <strong>"Check Status"</strong> tab in the navigation bar and enter your Leader Email Address
+              or Register Number to view status, approval decisions, or print your official registration slip.
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- SECTION 2: STATUS CHECK TAB -->
@@ -342,11 +460,14 @@
           <h2><i class="fa-solid fa-magnifying-glass"></i> Check Application Status</h2>
         </div>
         <p style="color: var(--text-secondary); margin-bottom: 20px;">
-          Enter the Leader's Email Address or Register Number used during registration to verify your application status.
+          Enter the Leader's Email Address or Register Number used during registration to verify your application
+          status.
         </p>
         <div style="display: flex; gap: 12px; max-width: 600px; margin-bottom: 24px;">
-          <input type="text" id="status-search-input" placeholder="e.g. john.doe@example.com or 2112001" style="flex: 1;">
-          <button type="button" class="btn-primary" style="width: auto; padding: 0 24px;" onclick="checkApplicationStatus()">
+          <input type="text" id="status-search-input" placeholder="e.g. john.doe@example.com or 2112001"
+            style="flex: 1;">
+          <button type="button" class="btn-primary" style="width: auto; padding: 0 24px;"
+            onclick="checkApplicationStatus()">
             Search Status
           </button>
         </div>
@@ -374,6 +495,27 @@
     </div>
   </div>
 
+  <!-- Floating Mobile Bottom Navigation Bar -->
+  <div class="mobile-bottom-nav">
+    <button class="mobile-nav-btn active" id="mobile-tab-register" onclick="switchTab('register')">
+      <i class="fa-solid fa-pen-to-square"></i>
+      <span>Register</span>
+    </button>
+    <button class="mobile-nav-btn" id="mobile-tab-status" onclick="switchTab('status')">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <span>Status</span>
+    </button>
+    <a href="/api/teams/template" class="mobile-nav-btn" download>
+      <i class="fa-solid fa-download"></i>
+      <span>PPT</span>
+    </a>
+    <a href="admin.html" class="mobile-nav-btn">
+      <i class="fa-solid fa-user-shield"></i>
+      <span>Admin</span>
+    </a>
+  </div>
+
   <script src="js/app.js"></script>
 </body>
+
 </html>

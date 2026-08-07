@@ -59,7 +59,7 @@ const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 20 * 1024 * 1024 // 20MB limit (individual checks enforced per field)
+    fileSize: 10 * 1024 * 1024 // 10MB limit max for multer stream
   }
 });
 
@@ -74,20 +74,20 @@ const uploadMiddleware = (req, res, next) => {
   uploadTeamFiles(req, res, function (err) {
     if (err instanceof multer.MulterError) {
       if (err.code === 'LIMIT_FILE_SIZE') {
-        return res.status(400).json({ success: false, message: 'File size exceeds maximum limit (PPT: max 20MB, Screenshot: max 10MB).' });
+        return res.status(400).json({ success: false, message: 'File size exceeds maximum limit (PPT: max 10MB, Screenshot: max 5MB).' });
       }
       return res.status(400).json({ success: false, message: `Upload error: ${err.message}` });
     } else if (err) {
       return res.status(400).json({ success: false, message: err.message });
     }
 
-    // Secondary file size verification
+    // Secondary file size verification per specific field
     if (req.files) {
-      if (req.files.eurekaScreenshot && req.files.eurekaScreenshot[0].size > 10 * 1024 * 1024) {
-        return res.status(400).json({ success: false, message: 'Eureka Screenshot exceeds 10MB limit!' });
+      if (req.files.eurekaScreenshot && req.files.eurekaScreenshot[0].size > 5 * 1024 * 1024) {
+        return res.status(400).json({ success: false, message: 'Eureka Screenshot exceeds 5MB size limit!' });
       }
-      if (req.files.pptFile && req.files.pptFile[0].size > 20 * 1024 * 1024) {
-        return res.status(400).json({ success: false, message: 'PPT File exceeds 20MB limit!' });
+      if (req.files.pptFile && req.files.pptFile[0].size > 10 * 1024 * 1024) {
+        return res.status(400).json({ success: false, message: 'Presentation PPT file exceeds 10MB size limit!' });
       }
     }
     next();
