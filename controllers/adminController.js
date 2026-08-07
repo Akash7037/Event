@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Admin = require('../models/Admin');
 const Team = require('../models/Team');
 const jwt = require('jsonwebtoken');
@@ -106,23 +107,25 @@ exports.loginAdmin = async (req, res, next) => {
 // @access  Private (Admin)
 exports.getStats = async (req, res, next) => {
   try {
-    let total = 0, pending = 0, approved = 0, rejected = 0;
+    let total = 0, pending = 0, approved = 0, rejected = 0, checkedIn = 0;
 
     if (getIsConnected()) {
       total = await Team.countDocuments({});
       pending = await Team.countDocuments({ status: 'Pending Verification' });
       approved = await Team.countDocuments({ status: 'Approved' });
       rejected = await Team.countDocuments({ status: 'Rejected' });
+      checkedIn = await Team.countDocuments({ checkedIn: true });
     } else {
       total = inMemoryTeams.length;
       pending = inMemoryTeams.filter(t => t.status === 'Pending Verification').length;
       approved = inMemoryTeams.filter(t => t.status === 'Approved').length;
       rejected = inMemoryTeams.filter(t => t.status === 'Rejected').length;
+      checkedIn = inMemoryTeams.filter(t => t.checkedIn).length;
     }
 
     res.status(200).json({
       success: true,
-      data: { total, pending, approved, rejected }
+      data: { total, pending, approved, rejected, checkedIn }
     });
   } catch (error) {
     next(error);
@@ -139,7 +142,13 @@ exports.getTeams = async (req, res, next) => {
 
     if (getIsConnected()) {
       let filter = {};
-      if (status && status !== 'All') filter.status = status;
+      if (status && status !== 'All') {
+        if (status === 'CheckedIn') {
+          filter.checkedIn = true;
+        } else {
+          filter.status = status;
+        }
+      }
       if (department && department !== 'All') filter['leader.department'] = department;
       if (year && year !== 'All') filter['leader.year'] = year;
       if (search && search.trim() !== '') {
@@ -155,21 +164,25 @@ exports.getTeams = async (req, res, next) => {
     } else {
       teams = [...inMemoryTeams];
       if (status && status !== 'All') {
-        teams = teams.filter(t => t.status === status);
+        if (status === 'CheckedIn') {
+          teams = teams.filter(t => t.checkedIn);
+        } else {
+          teams = teams.filter(t => t.status === status);
+        }
       }
       if (department && department !== 'All') {
-        teams = teams.filter(t => t.leader.department === department);
+        teams = teams.filter(t => t.leader && t.leader.department === department);
       }
       if (year && year !== 'All') {
-        teams = teams.filter(t => t.leader.year === year);
+        teams = teams.filter(t => t.leader && t.leader.year === year);
       }
       if (search && search.trim() !== '') {
         const q = search.trim().toLowerCase();
         teams = teams.filter(t =>
-          t.teamName.toLowerCase().includes(q) ||
-          t.leader.name.toLowerCase().includes(q) ||
-          t.leader.registerNumber.toLowerCase().includes(q) ||
-          t.leader.email.toLowerCase().includes(q)
+          (t.teamName && t.teamName.toLowerCase().includes(q)) ||
+          (t.leader && t.leader.name && t.leader.name.toLowerCase().includes(q)) ||
+          (t.leader && t.leader.registerNumber && t.leader.registerNumber.toLowerCase().includes(q)) ||
+          (t.leader && t.leader.email && t.leader.email.toLowerCase().includes(q))
         );
       }
     }
@@ -553,21 +566,28 @@ exports.verifyAuditoriumTicket = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Ticket ID or Leader Register Number is required' });
     }
 
+    const cleanTicketId = ticketId ? String(ticketId).trim() : null;
+    const cleanRegNo = registerNumber ? String(registerNumber).trim().toUpperCase() : null;
     let team = null;
 
     if (getIsConnected()) {
-      if (ticketId) {
-        team = await Team.findById(ticketId);
+      if (cleanTicketId && mongoose.Types.ObjectId.isValid(cleanTicketId)) {
+        team = await Team.findById(cleanTicketId);
       }
-      if (!team && registerNumber) {
-        team = await Team.findOne({ 'leader.registerNumber': registerNumber.trim().toUpperCase() });
+      if (!team && cleanRegNo) {
+        team = await Team.findOne({
+          $or: [
+            { 'leader.registerNumber': cleanRegNo },
+            { 'leader.registerNumber': new RegExp('^' + cleanRegNo.trim() + '$', 'i') }
+          ]
+        });
       }
     } else {
-      if (ticketId) {
-        team = inMemoryTeams.find(t => t._id === ticketId || t.id === ticketId);
+      if (cleanTicketId) {
+        team = inMemoryTeams.find(t => t._id === cleanTicketId || t.id === cleanTicketId);
       }
-      if (!team && registerNumber) {
-        team = inMemoryTeams.find(t => t.leader && t.leader.registerNumber === registerNumber.trim().toUpperCase());
+      if (!team && cleanRegNo) {
+        team = inMemoryTeams.find(t => t.leader && t.leader.registerNumber === cleanRegNo);
       }
     }
 
@@ -583,7 +603,7 @@ exports.verifyAuditoriumTicket = async (req, res, next) => {
         data: {
           teamName: team.teamName,
           startupName: team.startupName || team.teamName,
-          leaderName: team.leader.name,
+          leaderName: team.leader ? team.leader.name : 'Leader',
           status: team.status
         }
       });
@@ -598,18 +618,24 @@ exports.verifyAuditoriumTicket = async (req, res, next) => {
         data: {
           teamName: team.teamName,
           startupName: team.startupName || team.teamName,
-          leaderName: team.leader.name,
+          leaderName: team.leader ? team.leader.name : 'Leader',
           totalMembers: 1 + (team.members ? team.members.length : 0),
           checkedInAt: team.checkedInAt
         }
       });
     }
 
+    const checkInTime = new Date();
     team.checkedIn = true;
-    team.checkedInAt = new Date();
+    team.checkedInAt = checkInTime;
 
     if (getIsConnected()) {
-      await team.save();
+      await Team.findByIdAndUpdate(team._id, {
+        $set: {
+          checkedIn: true,
+          checkedInAt: checkInTime
+        }
+      });
     }
 
     return res.status(200).json({
@@ -619,11 +645,11 @@ exports.verifyAuditoriumTicket = async (req, res, next) => {
         id: team._id,
         teamName: team.teamName,
         startupName: team.startupName || team.teamName,
-        leaderName: team.leader.name,
-        registerNumber: team.leader.registerNumber,
-        department: team.leader.department,
+        leaderName: team.leader ? team.leader.name : 'Leader',
+        registerNumber: team.leader ? team.leader.registerNumber : '',
+        department: team.leader ? team.leader.department : '',
         totalMembers: 1 + (team.members ? team.members.length : 0),
-        checkedInAt: team.checkedInAt
+        checkedInAt: checkInTime
       }
     });
 

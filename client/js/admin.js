@@ -178,6 +178,8 @@ async function loadAdminStats() {
       document.getElementById('stat-pending').textContent = result.data.pending;
       document.getElementById('stat-approved').textContent = result.data.approved;
       document.getElementById('stat-rejected').textContent = result.data.rejected;
+      const checkedInEl = document.getElementById('stat-checkedin');
+      if (checkedInEl) checkedInEl.textContent = result.data.checkedIn || 0;
 
       fetchRegistrationStatus();
 

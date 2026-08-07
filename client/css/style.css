@@ -674,13 +674,16 @@ label {
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
-  display: flex;
-  justify-content: space-between;
+  display: inline-flex;
   align-items: center;
+  gap: 4px;
+  margin-bottom: 6px;
 }
 
 label .required {
   color: var(--accent-rose);
+  font-weight: 700;
+  margin-left: 2px;
 }
 
 input[type="text"],
