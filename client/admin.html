@@ -111,35 +111,35 @@
 
       <!-- STATISTICS GRID -->
       <div class="stats-grid" style="grid-template-columns: repeat(5, 1fr);">
-        <div class="stat-card">
+        <div class="stat-card" onclick="filterByCard('All')" style="cursor: pointer;">
           <div class="stat-icon total"><i class="fa-solid fa-users"></i></div>
           <div class="stat-info">
             <h3 id="stat-total">0</h3>
             <span>Total Registrations</span>
           </div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" onclick="filterByCard('Pending Verification')" style="cursor: pointer;">
           <div class="stat-icon pending"><i class="fa-solid fa-clock"></i></div>
           <div class="stat-info">
             <h3 id="stat-pending">0</h3>
             <span>Pending Approval</span>
           </div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" onclick="filterByCard('Approved')" style="cursor: pointer;">
           <div class="stat-icon approved"><i class="fa-solid fa-circle-check"></i></div>
           <div class="stat-info">
             <h3 id="stat-approved">0</h3>
             <span>Approved Teams</span>
           </div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" onclick="filterByCard('Rejected')" style="cursor: pointer;">
           <div class="stat-icon rejected"><i class="fa-solid fa-circle-xmark"></i></div>
           <div class="stat-info">
             <h3 id="stat-rejected">0</h3>
             <span>Rejected Teams</span>
           </div>
         </div>
-        <div class="stat-card" style="border-left: 3px solid var(--accent-emerald);">
+        <div class="stat-card" onclick="filterByCard('CheckedIn')" style="cursor: pointer; border-left: 3px solid var(--accent-emerald);">
           <div class="stat-icon approved" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald);">
             <i class="fa-solid fa-qrcode"></i>
           </div>

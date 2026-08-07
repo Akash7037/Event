@@ -251,6 +251,14 @@ async function toggleRegistrationStatus() {
   }
 }
 
+function filterByCard(statusValue) {
+  const select = document.getElementById('filter-status');
+  if (select) {
+    select.value = statusValue;
+    loadTeamsData();
+  }
+}
+
 // Fetch Teams Data with Search and Filters
 async function loadTeamsData() {
   const search = document.getElementById('filter-search').value.trim();
