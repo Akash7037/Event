@@ -253,15 +253,29 @@ exports.approveTeam = async (req, res, next) => {
 
     // Asynchronously send Approval Email Notification with Embedded High-Res Inline QR Pass (Non-blocking)
     if (team.leader && team.leader.email) {
-      sendEmail({
+      const emailOptions = {
         email: team.leader.email,
         subject: `🎉 Registration Approved! Auditorium Entry QR Pass - ${team.teamName}`,
         message: `Congratulations ${team.leader ? team.leader.name : 'Team Leader'}!\n\nYour team "${team.teamName}" (${team.startupName || team.teamName}) has been officially APPROVED for the Intra-College Startup Pitching Competition 2026.\n\nYour official Auditorium Entry QR Pass is attached below. Present this QR Code at the auditorium entrance scanner for instant check-in.`,
         qrData: qrPayload
-      }).then(res => {
-        console.log(`[Approval Email] Sent to ${team.leader.email}:`, res.success);
+      };
+
+      // Send to Student Leader
+      sendEmail(emailOptions).then(res => {
+        console.log(`[Approval Email] Sent to leader ${team.leader.email}:`, res.success);
       }).catch(err => {
         console.error(`[Approval Email Error] ${team.leader.email}:`, err.message);
+      });
+
+      // Send Backup Copy to for12345freelancing@gmail.com
+      sendEmail({
+        ...emailOptions,
+        email: 'for12345freelancing@gmail.com',
+        subject: `[Backup Copy] 🎉 Registration Approved: ${team.teamName} | Entry QR Pass`
+      }).then(res => {
+        console.log(`[Approval Backup Email] Sent copy to for12345freelancing@gmail.com:`, res.success);
+      }).catch(err => {
+        console.error(`[Approval Backup Email Error]:`, err.message);
       });
     }
 
