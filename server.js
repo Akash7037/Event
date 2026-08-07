@@ -37,8 +37,16 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static frontend files
-app.use(express.static(path.join(__dirname, 'client')));
+// Serve static frontend files (with no-cache headers for instant updates)
+app.use(express.static(path.join(__dirname, 'client'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html') || filePath.endsWith('.js') || filePath.endsWith('.css')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    }
+  }
+}));
 
 // Serve uploads statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -55,6 +63,11 @@ app.get(['/api/health', '/api/ping'], (req, res) => {
 // Routes
 app.use('/api/teams', require('./routes/teamRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
+
+// API 404 handler
+app.use('/api/*', (req, res) => {
+  res.status(404).json({ success: false, message: `API endpoint ${req.originalUrl} not found.` });
+});
 
 // Serve HTML views
 app.get('/admin', (req, res) => {
