@@ -1,4 +1,12 @@
 const mongoose = require('mongoose');
+const dns = require('dns');
+
+// Override DNS servers to Google Public DNS to resolve SRV records on Windows/ISPs
+try {
+  dns.setServers(['8.8.8.8', '8.8.4.4']);
+} catch (dnsErr) {
+  console.warn('[DNS Warning] Could not set custom DNS servers:', dnsErr.message);
+}
 
 let isMongoConnected = false;
 
@@ -7,14 +15,24 @@ const connectDB = async () => {
 
   try {
     const conn = await mongoose.connect(connStr, {
-      serverSelectionTimeoutMS: 2000
+      serverSelectionTimeoutMS: 10000
     });
     isMongoConnected = true;
-    console.log(`[MongoDB] Connected to database: ${conn.connection.host}`);
+    console.log(`====================================================`);
+    console.log(`✅ [MongoDB Atlas] Connected successfully to host: ${conn.connection.host}`);
+    console.log(`====================================================`);
   } catch (error) {
-    isMongoConnected = false;
-    console.warn(`[MongoDB Notice] Local MongoDB server on port 27017 is not running (${error.message}).`);
-    console.log('[MongoDB Notice] Operating with fast in-memory store for zero-delay execution.');
+    console.warn(`[MongoDB Atlas Warning] SRV Connection failed: ${error.message}`);
+    // Try fallback to standard connection format or local MongoDB
+    try {
+      const localConnStr = 'mongodb://127.0.0.1:27017/pitch_competition';
+      const conn = await mongoose.connect(localConnStr, { serverSelectionTimeoutMS: 3000 });
+      isMongoConnected = true;
+      console.log(`[MongoDB Local] Connected to local database: ${conn.connection.host}`);
+    } catch (localErr) {
+      isMongoConnected = false;
+      console.warn(`[MongoDB Notice] Operating with fast in-memory store for zero-delay execution.`);
+    }
   }
 };
 
