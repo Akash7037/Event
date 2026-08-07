@@ -20,7 +20,7 @@ try {
 
 /**
  * Unified Hybrid Email Utility
- * Supports: 'smtp' | 'resend' | 'sendgrid' via process.env.EMAIL_SERVICE
+ * Supports: 'smtp' | 'resend' | 'sendgrid' | 'brevo' via process.env.EMAIL_SERVICE
  */
 const sendEmail = async (options) => {
   if (!options || !options.email) {
@@ -94,6 +94,25 @@ const sendEmail = async (options) => {
     const finalHtml = options.customHtml || defaultHtml;
 
     // Dispatch based on active EMAIL_SERVICE with automatic failover
+    if (service === 'brevo') {
+      if (process.env.BREVO_API_KEY && process.env.BREVO_API_KEY.trim() !== '') {
+        try {
+          return await sendViaBrevo({
+            to: options.email,
+            fromName,
+            fromEmail,
+            subject: options.subject,
+            html: finalHtml,
+            attachments: rawAttachments
+          });
+        } catch (brevoErr) {
+          console.warn(`[Email Failover] Brevo failed (${brevoErr.message}). Retrying via SMTP...`);
+        }
+      } else {
+        console.warn('[Email Warning] BREVO_API_KEY missing in .env. Falling back to SMTP...');
+      }
+    }
+
     if (service === 'resend') {
       if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY.trim() !== '') {
         try {
@@ -106,7 +125,7 @@ const sendEmail = async (options) => {
             attachments: rawAttachments
           });
         } catch (resendErr) {
-          console.warn(`[Email Failover] Resend failed (${resendErr.message}). Retrying via Nodemailer SMTP...`);
+          console.warn(`[Email Failover] Resend failed (${resendErr.message}). Retrying via SMTP...`);
         }
       } else {
         console.warn('[Email Warning] RESEND_API_KEY missing in .env. Falling back to SMTP...');
@@ -125,7 +144,7 @@ const sendEmail = async (options) => {
             attachments: rawAttachments
           });
         } catch (sgErr) {
-          console.warn(`[Email Failover] SendGrid failed (${sgErr.message}). Retrying via Nodemailer SMTP...`);
+          console.warn(`[Email Failover] SendGrid failed (${sgErr.message}). Retrying via SMTP...`);
         }
       } else {
         console.warn('[Email Warning] SENDGRID_API_KEY missing in .env. Falling back to SMTP...');
@@ -146,6 +165,58 @@ const sendEmail = async (options) => {
     console.error(`[Email Error] Failed to send to ${options.email}:`, error.message);
     return { success: false, error: error.message };
   }
+};
+
+/**
+ * Send via Brevo API (Sendinblue)
+ * Free tier allows 300 emails/day to ANY recipient without domain restriction
+ */
+const sendViaBrevo = async ({ to, fromName, fromEmail, subject, html, attachments }) => {
+  const apiKey = process.env.BREVO_API_KEY;
+  if (!apiKey) throw new Error('BREVO_API_KEY is not defined');
+
+  const formattedAttachments = attachments.map(att => {
+    let base64Content = '';
+    if (att.content && Buffer.isBuffer(att.content)) {
+      base64Content = att.content.toString('base64');
+    } else if (att.path && fs.existsSync(att.path)) {
+      base64Content = fs.readFileSync(att.path).toString('base64');
+    }
+
+    return {
+      name: att.filename,
+      content: base64Content
+    };
+  }).filter(att => att.content);
+
+  console.log(`[Email Engine] Sending via Brevo REST API to ${to}...`);
+
+  const payload = {
+    sender: { name: fromName, email: fromEmail },
+    to: [{ email: to }],
+    subject,
+    htmlContent: html,
+    attachment: formattedAttachments.length > 0 ? formattedAttachments : undefined
+  };
+
+  const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'accept': 'application/json',
+      'api-key': apiKey,
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const resData = await response.json();
+
+  if (!response.ok) {
+    throw new Error(resData.message || resData.code || 'Brevo delivery failed');
+  }
+
+  console.log(`[Email Sent - Brevo] Message ID: ${resData.messageId} to ${to}`);
+  return { success: true, info: resData, provider: 'brevo' };
 };
 
 /**
@@ -221,26 +292,27 @@ const sendViaSendGrid = async ({ to, fromName, fromEmail, subject, html, attachm
 };
 
 /**
- * Send via Nodemailer SMTP (Gmail or custom SMTP)
+ * Send via Nodemailer SMTP (Gmail or custom SMTP) with Port 465 SSL fallback
  */
 const sendViaSMTP = async ({ to, fromName, fromEmail, subject, html, attachments }) => {
   const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
   const smtpUser = (process.env.SMTP_USER || 'for12345freelancing@gmail.com').trim();
   const smtpPass = (process.env.SMTP_PASS || 'hufcciatriruuhbr').trim().replace(/\s+/g, '');
-  const port = parseInt(process.env.SMTP_PORT) || 587;
+  let port = parseInt(process.env.SMTP_PORT) || 465; // Default to 465 SSL for cloud safety
 
-  const transporter = nodemailer.createTransport({
-    host: smtpHost,
-    port: port,
-    secure: port === 465,
-    auth: { user: smtpUser, pass: smtpPass },
-    tls: { rejectUnauthorized: false },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000
-  });
+  const createTransporter = (targetPort) => {
+    return nodemailer.createTransport({
+      host: smtpHost,
+      port: targetPort,
+      secure: targetPort === 465, // SSL for 465, TLS for 587
+      auth: { user: smtpUser, pass: smtpPass },
+      tls: { rejectUnauthorized: false },
+      connectionTimeout: 8000,
+      greetingTimeout: 8000,
+      socketTimeout: 10000
+    });
+  };
 
-  console.log(`[Email Engine] Sending via Nodemailer SMTP (${smtpHost}) to ${to}...`);
   const mailOptions = {
     from: `${fromName} <${fromEmail}>`,
     to,
@@ -249,9 +321,21 @@ const sendViaSMTP = async ({ to, fromName, fromEmail, subject, html, attachments
     attachments
   };
 
-  const info = await transporter.sendMail(mailOptions);
-  console.log(`[Email Sent - SMTP] ID: ${info.messageId} to ${to}`);
-  return { success: true, info, provider: 'smtp' };
+  try {
+    console.log(`[Email Engine] Sending via Nodemailer SMTP (${smtpHost}:${port}) to ${to}...`);
+    const transporter = createTransporter(port);
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`[Email Sent - SMTP Port ${port}] ID: ${info.messageId} to ${to}`);
+    return { success: true, info, provider: `smtp-${port}` };
+  } catch (firstErr) {
+    // Retry with SSL Port 465 if 587 timed out, or vice versa
+    const fallbackPort = port === 465 ? 587 : 465;
+    console.warn(`[SMTP Port ${port} Failed] (${firstErr.message}). Retrying on Port ${fallbackPort}...`);
+    const fallbackTransporter = createTransporter(fallbackPort);
+    const info = await fallbackTransporter.sendMail(mailOptions);
+    console.log(`[Email Sent - SMTP Port ${fallbackPort}] ID: ${info.messageId} to ${to}`);
+    return { success: true, info, provider: `smtp-${fallbackPort}` };
+  }
 };
 
 // ============================================================
