@@ -323,7 +323,7 @@ async function loadTeamsData() {
         const checkInBadge = team.checkedIn ? `
           <div style="margin-top: 4px;">
             <span class="badge badge-approved" style="font-size: 11px; padding: 2px 8px; background: rgba(16, 185, 129, 0.15); border-color: var(--accent-emerald);">
-              <i class="fa-solid fa-qrcode"></i> Present (${new Date(team.checkedInAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})})
+              <i class="fa-solid fa-qrcode"></i> Present (${new Date(team.checkedInAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})
             </span>
           </div>
         ` : '';
@@ -454,9 +454,6 @@ async function openTeamDetailsModal(teamId) {
           <a href="${screenshotUrl}" target="_blank" class="btn-secondary" style="text-decoration: none; border-color: var(--accent-cyan);">
             <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Raw Screenshot
           </a>
-          <button type="button" class="btn-primary" style="padding: 8px 16px; font-size: 13px; background: var(--accent-terracotta); border-color: var(--accent-terracotta);" onclick="triggerManualBackupEmail('${team._id}')">
-            <i class="fa-solid fa-envelope"></i> Send Backup to for12345freelancing@gmail.com
-          </button>
         </div>
         <p style="font-size: 12px; color: var(--text-muted); margin-top: 10px;">
           <i class="fa-solid fa-circle-info"></i> Verify that the Eureka registration screenshot clearly contains NEC ID <strong>NEC2621509</strong> before approving.
@@ -482,51 +479,6 @@ async function openTeamDetailsModal(teamId) {
 function closeTeamDetailsModal() {
   document.getElementById('team-details-modal').classList.remove('active');
   selectedTeamForAction = null;
-}
-
-async function triggerManualBackupEmail(teamId) {
-  try {
-    showToast('Dispatching backup email with PPT and Screenshot attachments...', 'info');
-    const response = await fetch(`/api/admin/teams/${teamId}/send-backup`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${currentAdminToken}`
-      }
-    });
-    const result = await response.json();
-    if (result.success) {
-      showToast(result.message || 'Backup email sent to for12345freelancing@gmail.com', 'success');
-    } else {
-      showToast(result.message || 'Failed to send backup email', 'error');
-    }
-  } catch (err) {
-    console.error('Backup email dispatch error:', err);
-    showToast('Network error dispatching backup email', 'error');
-  }
-}
-
-async function triggerSendAllBackups() {
-  if (!confirm('Send PPT + Screenshot backup emails for ALL registered teams to for12345freelancing@gmail.com?')) return;
-
-  try {
-    showToast('Starting bulk backup email dispatch...', 'info');
-    const response = await fetch('/api/admin/send-all-backups', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${currentAdminToken}`
-      }
-    });
-    const result = await response.json();
-    if (result.success) {
-      showToast(result.message || `Backup emails dispatched for ${result.count} team(s)!`, 'success');
-    } else {
-      showToast(result.message || 'Failed to dispatch bulk backup emails', 'error');
-    }
-  } catch (err) {
-    console.error('Send all backups error:', err);
-    showToast('Network error dispatching bulk backup emails', 'error');
-  }
 }
 
 // Approve Team Handler
@@ -924,7 +876,7 @@ function switchScannerTab(tabName) {
   const cameraView = document.getElementById('scanner-view-camera');
   const uploadView = document.getElementById('scanner-view-upload');
   const manualView = document.getElementById('scanner-view-manual');
-  
+
   const tabCamera = document.getElementById('scanner-tab-camera');
   const tabUpload = document.getElementById('scanner-tab-upload');
   const tabManual = document.getElementById('scanner-tab-manual');
@@ -1007,8 +959,8 @@ async function startLiveQrScanner() {
 
     // Smart Camera Selection: Prefer environment (rear) camera on mobile, or first available camera on laptop
     let cameraId = devices[0].id;
-    const backCamera = devices.find(device => 
-      device.label.toLowerCase().includes('back') || 
+    const backCamera = devices.find(device =>
+      device.label.toLowerCase().includes('back') ||
       device.label.toLowerCase().includes('environment') ||
       device.label.toLowerCase().includes('rear')
     );
@@ -1038,9 +990,9 @@ async function startLiveQrScanner() {
         { facingMode: 'user' },
         { fps: 10, qrbox: { width: 220, height: 220 } },
         (decodedText) => { handleQrCodeScanned(decodedText); },
-        (err) => {}
+        (err) => { }
       );
-    } catch(err2) {
+    } catch (err2) {
       container.innerHTML = `
         <div style="padding: 24px; color: var(--text-primary); font-size: 13px; text-align: center;">
           <i class="fa-solid fa-video-slash" style="font-size: 32px; margin-bottom: 8px; color: var(--accent-rose);"></i>
@@ -1059,10 +1011,10 @@ function stopLiveQrScanner() {
   if (html5QrCodeScanner) {
     try {
       html5QrCodeScanner.stop().then(() => {
-        try { html5QrCodeScanner.clear(); } catch(e) {}
+        try { html5QrCodeScanner.clear(); } catch (e) { }
         html5QrCodeScanner = null;
       }).catch(e => { html5QrCodeScanner = null; });
-    } catch(e) {
+    } catch (e) {
       html5QrCodeScanner = null;
     }
   }
@@ -1112,7 +1064,7 @@ async function handleQrCodeScanned(scannedText) {
       const parsed = JSON.parse(scannedText);
       ticketId = parsed.ticketId || parsed.id || null;
       registerNumber = parsed.registerNumber || null;
-    } catch(e) {
+    } catch (e) {
       ticketId = scannedText.trim();
     }
 
@@ -1203,6 +1155,30 @@ async function verifyTicketPayload(payload) {
     resultBox.style.background = 'rgba(220, 38, 38, 0.12)';
     resultBox.style.border = '1.5px solid var(--accent-rose)';
     resultBox.innerHTML = `<p style="color: var(--accent-rose); font-size: 13px;">Network error verifying ticket.</p>`;
+  }
+}
+
+
+<div style="font-size: 13px; color: var(--text-secondary);">Startup: ${data.startupName} | Leader: ${data.leaderName}</div>
+`;
+      showToast('DUPLICATE TICKET WARNING', 'warning');
+    } else {
+      resultBox.style.background = 'rgba(220, 38, 38, 0.12)';
+      resultBox.style.border = '1.5px solid var(--accent-rose)';
+      resultBox.innerHTML = `
+  < div style = "color: var(--accent-rose); font-weight: 800; font-size: 15px; margin-bottom: 4px;" >
+    <i class="fa-solid fa-circle-xmark"></i> ENTRY DENIED
+        </div >
+  <p style="font-size: 13px; color: var(--text-primary);">${resData.message}</p>
+`;
+      showToast(resData.message || 'Ticket verification failed', 'error');
+    }
+
+  } catch (error) {
+    console.error('Ticket verification error:', error);
+    resultBox.style.background = 'rgba(220, 38, 38, 0.12)';
+    resultBox.style.border = '1.5px solid var(--accent-rose)';
+    resultBox.innerHTML = `< p style = "color: var(--accent-rose); font-size: 13px;" > Network error verifying ticket.</p > `;
   }
 }
 

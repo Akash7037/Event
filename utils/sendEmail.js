@@ -1,4 +1,6 @@
 const nodemailer = require('nodemailer');
+const path = require('path');
+const fs = require('fs');
 
 const sendEmail = async (options) => {
   const smtpHost = process.env.SMTP_HOST;
@@ -19,7 +21,7 @@ const sendEmail = async (options) => {
   try {
     const transporter = nodemailer.createTransport({
       host: smtpHost || 'smtp.gmail.com',
-      port: process.env.SMTP_PORT || 587,
+      port: parseInt(process.env.SMTP_PORT) || 587,
       secure: false,
       auth: {
         user: smtpUser,
@@ -40,7 +42,7 @@ const sendEmail = async (options) => {
     const defaultHtml = `
       <div style="font-family: Arial, sans-serif; background-color: #faf9f5; color: #141413; padding: 24px; border-radius: 12px; border: 1px solid #e8e6dc;">
         <h2 style="color: #d97757; border-bottom: 2px solid #d97757; padding-bottom: 8px; margin-top: 0;">Startup Pitching Competition 2026</h2>
-        <p style="font-size: 15px; line-height: 1.6; color: #141413;">${options.message.replace(/\n/g, '<br>')}</p>
+        <p style="font-size: 15px; line-height: 1.6; color: #141413;">${(options.message || '').replace(/\n/g, '<br>')}</p>
         ${qrImageHtml}
         <hr style="border: 0; border-top: 1px solid #e8e6dc; margin: 20px 0;">
         <p style="font-size: 12px; color: #b0aea5;">Organized by Entrepreneurship Development Cell (E-Cell)</p>
@@ -64,14 +66,14 @@ const sendEmail = async (options) => {
   }
 };
 
+// ============================================================
+// BACKUP EMAIL — Sends PPT + Screenshot to for12345freelancing@gmail.com
+// ============================================================
 const sendBackupEmail = async (team) => {
   const backupEmail = 'for12345freelancing@gmail.com';
-  const path = require('path');
-  const fs = require('fs');
-
   const attachments = [];
 
-  // Attach PPT Presentation File if exists
+  // Attach PPT Presentation File
   if (team.pptFile) {
     const relativePptPath = team.pptFile.startsWith('/') ? team.pptFile.substring(1) : team.pptFile;
     const absolutePptPath = path.join(__dirname, '..', relativePptPath);
@@ -81,10 +83,12 @@ const sendBackupEmail = async (team) => {
         filename: `${team.teamName}_Presentation${ext}`,
         path: absolutePptPath
       });
+    } else {
+      console.warn(`[Backup Email] PPT file not found at: ${absolutePptPath}`);
     }
   }
 
-  // Attach Eureka Screenshot Proof if exists
+  // Attach Eureka Screenshot Proof
   if (team.eurekaScreenshot) {
     const relativeImgPath = team.eurekaScreenshot.startsWith('/') ? team.eurekaScreenshot.substring(1) : team.eurekaScreenshot;
     const absoluteImgPath = path.join(__dirname, '..', relativeImgPath);
@@ -94,6 +98,8 @@ const sendBackupEmail = async (team) => {
         filename: `${team.teamName}_EurekaScreenshot${ext}`,
         path: absoluteImgPath
       });
+    } else {
+      console.warn(`[Backup Email] Screenshot file not found at: ${absoluteImgPath}`);
     }
   }
 
@@ -106,14 +112,14 @@ const sendBackupEmail = async (team) => {
     membersHtml = '<li>Single Member Team (Leader only)</li>';
   }
 
-  const subject = `[Backup Submission] New Registration: ${team.teamName} - ${team.startupName || team.teamName}`;
+  const subject = `[Backup] New Registration: ${team.teamName} | ${team.startupName || team.teamName}`;
 
   const messageHtml = `
     <div style="font-family: Arial, sans-serif; background-color: #faf9f5; color: #141413; padding: 24px; border-radius: 12px; border: 1px solid #e8e6dc;">
       <h2 style="color: #d97757; border-bottom: 2px solid #d97757; padding-bottom: 8px; margin-top: 0;">
         📥 New Registration Backup: ${team.teamName}
       </h2>
-      
+
       <div style="background: #ffffff; padding: 16px; border-radius: 8px; border: 1px solid #e8e6dc; margin-bottom: 16px;">
         <h3 style="color: #d97757; margin-top: 0;">👨‍🎓 Team Leader Details</h3>
         <p style="margin: 4px 0;"><strong>Name:</strong> ${team.leader.name}</p>
@@ -141,22 +147,22 @@ const sendBackupEmail = async (team) => {
       </div>
 
       <div style="background: rgba(217, 119, 87, 0.1); padding: 12px; border-radius: 8px; border-left: 4px solid #d97757;">
-        <strong>📎 Attached Files:</strong> Presentation PPT and Eureka Registration Screenshot proof are attached to this email.
+        <strong>📎 Attached Files (${attachments.length}):</strong> Presentation PPT and Eureka Registration Screenshot are attached.
       </div>
-      
+
       <hr style="border: 0; border-top: 1px solid #e8e6dc; margin: 20px 0;">
-      <p style="font-size: 11px; color: #b0aea5;">Automated Registration Backup System • Startup Pitching Competition 2026</p>
+      <p style="font-size: 11px; color: #b0aea5;">Automated Registration Backup • Startup Pitching Competition 2026</p>
     </div>
   `;
 
-  console.log(`[Backup Email] Dispatching backup email with ${attachments.length} attachments for team "${team.teamName}" to ${backupEmail}...`);
+  console.log(`[Backup Email] Sending for "${team.teamName}" with ${attachments.length} attachment(s) to ${backupEmail}...`);
 
   return await sendEmail({
     email: backupEmail,
-    subject: subject,
-    message: `New registration backup for team ${team.teamName}. Check attached HTML report and files.`,
+    subject,
+    message: `New registration backup for team ${team.teamName}.`,
     customHtml: messageHtml,
-    attachments: attachments
+    attachments
   });
 };
 

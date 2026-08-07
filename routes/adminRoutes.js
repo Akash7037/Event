@@ -13,9 +13,7 @@ const {
   updateAdminCredentials,
   verifyAuditoriumTicket,
   getRegistrationStatus,
-  toggleRegistration,
-  sendBackupEmailForTeam,
-  sendAllBackupEmails
+  toggleRegistration
 } = require('../controllers/adminController');
 
 // Public route: Admin Login
@@ -25,8 +23,6 @@ router.get('/registration-status', getRegistrationStatus);
 // Private routes (JWT Required)
 router.post('/toggle-registration', protectAdmin, toggleRegistration);
 router.post('/verify-ticket', protectAdmin, verifyAuditoriumTicket);
-router.post('/teams/:id/send-backup', protectAdmin, sendBackupEmailForTeam);
-router.post('/send-all-backups', protectAdmin, sendAllBackupEmails);
 router.put('/update-credentials', protectAdmin, updateAdminCredentials);
 router.put('/change-password', protectAdmin, changeAdminPassword);
 router.get('/stats', protectAdmin, getStats);
