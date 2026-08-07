@@ -1168,24 +1168,38 @@ async function scanSelectedQrImage(fileInput) {
 }
 
 async function handleQrCodeScanned(scannedText) {
-  try {
-    let ticketId = null;
-    let registerNumber = null;
+  if (!scannedText) return;
+  const rawText = String(scannedText).trim();
 
-    try {
-      const parsed = JSON.parse(scannedText);
+  let ticketId = null;
+  let registerNumber = null;
+
+  try {
+    const parsed = JSON.parse(rawText);
+    if (parsed && typeof parsed === 'object') {
       ticketId = parsed.ticketId || parsed.id || null;
       registerNumber = parsed.registerNumber || null;
-    } catch (e) {
-      ticketId = scannedText.trim();
+    } else {
+      if (/^[a-zA-Z0-9_-]{6,20}$/.test(rawText)) {
+        registerNumber = rawText;
+      } else {
+        ticketId = rawText;
+      }
     }
-
-    verifyTicketPayload({ ticketId, registerNumber });
-
-  } catch (err) {
-    console.error('QR decode error:', err);
-    showToast('Invalid QR Code format', 'error');
+  } catch (e) {
+    if (/^[a-zA-Z0-9_-]{6,20}$/.test(rawText)) {
+      registerNumber = rawText;
+    } else {
+      ticketId = rawText;
+    }
   }
+
+  if (!ticketId && !registerNumber) {
+    registerNumber = rawText;
+  }
+
+  console.log('[QR Scanner Parsed Payload]:', { rawText, ticketId, registerNumber });
+  verifyTicketPayload({ ticketId, registerNumber, rawText });
 }
 
 async function verifyManualTicket() {

@@ -574,34 +574,51 @@ exports.updateAdminCredentials = async (req, res, next) => {
 // @access  Private (Admin)
 exports.verifyAuditoriumTicket = async (req, res, next) => {
   try {
-    const { ticketId, registerNumber } = req.body;
-
-    if (!ticketId && !registerNumber) {
-      return res.status(400).json({ success: false, message: 'Ticket ID or Leader Register Number is required' });
-    }
+    const { ticketId, registerNumber, rawText } = req.body;
 
     const cleanTicketId = ticketId ? String(ticketId).trim() : null;
     const cleanRegNo = registerNumber ? String(registerNumber).trim().toUpperCase() : null;
+    const cleanRaw = rawText ? String(rawText).trim() : null;
+    const querySearch = cleanRegNo || (cleanRaw ? cleanRaw.toUpperCase() : null) || (cleanTicketId ? cleanTicketId.toUpperCase() : null);
+
+    if (!cleanTicketId && !cleanRegNo && !cleanRaw) {
+      return res.status(400).json({ success: false, message: 'Ticket ID or Leader Register Number is required' });
+    }
+
     let team = null;
 
     if (getIsConnected()) {
+      // 1. Try finding by MongoDB ObjectId if valid
       if (cleanTicketId && mongoose.Types.ObjectId.isValid(cleanTicketId)) {
         team = await Team.findById(cleanTicketId);
       }
-      if (!team && cleanRegNo) {
+
+      // 2. Try finding by Leader Register Number or Phone
+      if (!team && querySearch) {
         team = await Team.findOne({
           $or: [
-            { 'leader.registerNumber': cleanRegNo },
-            { 'leader.registerNumber': new RegExp('^' + cleanRegNo.trim() + '$', 'i') }
+            { 'leader.registerNumber': querySearch },
+            { 'leader.registerNumber': new RegExp('^' + querySearch + '$', 'i') },
+            { 'leader.phone': querySearch }
           ]
+        });
+      }
+
+      // 3. Try finding by Team Name
+      if (!team && querySearch) {
+        team = await Team.findOne({
+          teamName: new RegExp('^' + querySearch + '$', 'i')
         });
       }
     } else {
       if (cleanTicketId) {
         team = inMemoryTeams.find(t => t._id === cleanTicketId || t.id === cleanTicketId);
       }
-      if (!team && cleanRegNo) {
-        team = inMemoryTeams.find(t => t.leader && t.leader.registerNumber === cleanRegNo);
+      if (!team && querySearch) {
+        team = inMemoryTeams.find(t =>
+          (t.leader && t.leader.registerNumber === querySearch) ||
+          (t.teamName && t.teamName.toUpperCase() === querySearch)
+        );
       }
     }
 

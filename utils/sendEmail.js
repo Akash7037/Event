@@ -27,6 +27,9 @@ const sendEmail = async (options) => {
       auth: {
         user: smtpUser,
         pass: smtpPass
+      },
+      tls: {
+        rejectUnauthorized: false
       }
     });
 
