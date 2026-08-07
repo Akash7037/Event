@@ -144,18 +144,12 @@ exports.registerTeam = async (req, res, next) => {
       console.error(`[Auto Backup Error] Team "${newTeam.teamName}":`, err.message);
     });
 
-    // Dispatch registration receipt email to team leader (including Auditorium QR Entry Pass)
+    // Dispatch registration receipt email to team leader (Confirmation only, no QR code until approved)
     if (newTeam.leader && newTeam.leader.email) {
       sendEmail({
         email: newTeam.leader.email,
         subject: `Registration Received - Team "${newTeam.teamName}" | Startup Pitching Competition 2026`,
-        message: `Dear ${newTeam.leader.name},\n\nThank you for registering your team "${newTeam.teamName}" (${newTeam.startupName || newTeam.teamName}) for the Intra-College Startup Pitching Competition 2026.\n\nYour application has been received and is currently Pending Verification by the E-Cell panel.\n\nYour preliminary Auditorium Entry QR Pass is attached below. Present this QR Pass at the entrance scanner for instant check-in.`,
-        qrData: {
-          ticketId: newTeam._id,
-          registerNumber: newTeam.leader.registerNumber,
-          teamName: newTeam.teamName,
-          status: newTeam.status
-        }
+        message: `Dear ${newTeam.leader.name},\n\nThank you for registering your team "${newTeam.teamName}" (${newTeam.startupName || newTeam.teamName}) for the Intra-College Startup Pitching Competition 2026.\n\nYour application has been received successfully and is currently Pending Verification by the E-Cell panel.\n\nOnce your submission is reviewed and approved by the admin team, you will receive an official Approval Email containing your Auditorium Entry QR Pass.`
       }).then(res => {
         console.log(`[Student Confirmation Email] Sent to ${newTeam.leader.email}:`, res.success);
       }).catch(err => {
