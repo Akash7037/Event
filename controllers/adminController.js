@@ -792,6 +792,21 @@ exports.sendAllBackupEmails = async (req, res, next) => {
   }
 };
 
+// Helper function to safely delete uploaded files from disk
+const removeUploadedFileSafely = (filePath) => {
+  if (!filePath) return;
+  try {
+    const cleanRel = filePath.startsWith('/') ? filePath.substring(1) : filePath;
+    const absPath = path.join(__dirname, '..', cleanRel);
+    if (fs.existsSync(absPath) && !path.basename(absPath).startsWith('.gitkeep')) {
+      fs.unlinkSync(absPath);
+      console.log(`[File Cleanup] Safely deleted physical file: ${absPath}`);
+    }
+  } catch (err) {
+    console.warn(`[File Cleanup Warning] Could not remove ${filePath}:`, err.message);
+  }
+};
+
 // @desc    Delete a single team registration by ID
 // @route   DELETE /api/admin/teams/:id
 // @access  Private (Admin)
@@ -816,9 +831,13 @@ exports.deleteTeam = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Team registration not found.' });
     }
 
+    // Automatically remove physical PPT and Screenshot files from disk
+    removeUploadedFileSafely(deletedTeam.pptFile);
+    removeUploadedFileSafely(deletedTeam.eurekaScreenshot);
+
     res.status(200).json({
       success: true,
-      message: `Team "${deletedTeam.teamName}" deleted successfully.`,
+      message: `Team "${deletedTeam.teamName}" and its uploaded files deleted successfully.`,
       deletedId: id
     });
   } catch (error) {
@@ -832,19 +851,42 @@ exports.deleteTeam = async (req, res, next) => {
 exports.clearAllTeams = async (req, res, next) => {
   try {
     let count = 0;
+    let teamsToDelete = [];
 
     if (getIsConnected()) {
+      teamsToDelete = await Team.find({});
       const result = await Team.deleteMany({});
       count = result.deletedCount;
     } else {
       const { inMemoryTeams } = require('./teamController');
+      teamsToDelete = [...inMemoryTeams];
       count = inMemoryTeams.length;
       inMemoryTeams.length = 0;
     }
 
+    // Clean up physical files for all deleted teams
+    teamsToDelete.forEach(t => {
+      removeUploadedFileSafely(t.pptFile);
+      removeUploadedFileSafely(t.eurekaScreenshot);
+    });
+
+    // Also sweep uploads folders to ensure no orphaned files remain
+    ['ppt', 'screenshots'].forEach(folder => {
+      const dirPath = path.join(__dirname, '..', 'uploads', folder);
+      if (fs.existsSync(dirPath)) {
+        fs.readdirSync(dirPath).forEach(file => {
+          if (!file.startsWith('.gitkeep')) {
+            try {
+              fs.unlinkSync(path.join(dirPath, file));
+            } catch (e) {}
+          }
+        });
+      }
+    });
+
     res.status(200).json({
       success: true,
-      message: `Successfully cleared ALL ${count} registered team(s). Database is now fresh!`,
+      message: `Successfully cleared ALL ${count} registered team(s) and deleted all uploaded PPTs/Screenshots! Database is now fresh!`,
       deletedCount: count
     });
   } catch (error) {

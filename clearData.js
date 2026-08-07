@@ -17,10 +17,31 @@ async function clearAllRegistrations() {
     process.exit(0);
   }
 
+  const fs = require('fs');
+  const path = require('path');
+
   const result = await Team.deleteMany({});
   console.log(`🗑️ Successfully deleted ALL ${result.deletedCount} team registration(s) from MongoDB Atlas!`);
-  console.log('Database is now fresh and ready for real competition registrations.');
 
+  // Clean up physical uploaded files in uploads/ppt and uploads/screenshots
+  ['ppt', 'screenshots'].forEach(folder => {
+    const dirPath = path.join(__dirname, 'uploads', folder);
+    if (fs.existsSync(dirPath)) {
+      const files = fs.readdirSync(dirPath);
+      files.forEach(file => {
+        if (!file.startsWith('.gitkeep')) {
+          try {
+            fs.unlinkSync(path.join(dirPath, file));
+            console.log(`🗑️ Deleted file: uploads/${folder}/${file}`);
+          } catch (e) {
+            console.warn(`Could not delete file ${file}:`, e.message);
+          }
+        }
+      });
+    }
+  });
+
+  console.log('✅ Database and uploaded files are now clean and ready for real competition registrations.');
   process.exit(0);
 }
 
