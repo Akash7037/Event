@@ -3,39 +3,42 @@ const path = require('path');
 const fs = require('fs');
 const QRCode = require('qrcode');
 
-const sendEmail = async (options) => {
-  const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
-  const smtpUser = (process.env.SMTP_USER || 'for12345freelancing@gmail.com').trim();
-  const smtpPass = (process.env.SMTP_PASS || 'hufcciatriruuhbr').trim().replace(/\s+/g, '');
+// Optional provider SDKs (safely required)
+let ResendSDK = null;
+let sgMailSDK = null;
+try {
+  const { Resend } = require('resend');
+  ResendSDK = Resend;
+} catch (e) {
+  // Resend optional
+}
+try {
+  sgMailSDK = require('@sendgrid/mail');
+} catch (e) {
+  // SendGrid optional
+}
 
+/**
+ * Unified Hybrid Email Utility
+ * Supports: 'smtp' | 'resend' | 'sendgrid' via process.env.EMAIL_SERVICE
+ */
+const sendEmail = async (options) => {
   if (!options || !options.email) {
     console.warn('[Email Warning] No recipient email specified.');
     return { success: false, error: 'No recipient email specified' };
   }
 
+  const service = (process.env.EMAIL_SERVICE || 'smtp').toLowerCase().trim();
+  const fromEmail = process.env.FROM_EMAIL || process.env.SMTP_USER || 'for12345freelancing@gmail.com';
+  const fromName = process.env.FROM_NAME || 'E-Cell Startup Competition';
+
   try {
-    let transporter;
-    const port = parseInt(process.env.SMTP_PORT) || 587;
-    
-    transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: port,
-      secure: port === 465,
-      auth: {
-        user: smtpUser,
-        pass: smtpPass
-      },
-      tls: {
-        rejectUnauthorized: false
-      },
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 15000
-    });
-
-    const attachments = [...(options.attachments || [])];
+    const rawAttachments = [...(options.attachments || [])];
     let qrImageHtml = '';
+    let qrBuffer = null;
+    let base64DataUri = '';
 
+    // Generate QR Code if requested
     if (options.qrData || options.qrUrl) {
       try {
         let qrString = '';
@@ -45,7 +48,7 @@ const sendEmail = async (options) => {
           qrString = String(options.qrUrl);
         }
 
-        const qrBuffer = await QRCode.toBuffer(qrString, {
+        qrBuffer = await QRCode.toBuffer(qrString, {
           type: 'png',
           margin: 2,
           width: 320,
@@ -53,21 +56,23 @@ const sendEmail = async (options) => {
         });
 
         const base64Data = qrBuffer.toString('base64');
-        const dataUri = `data:image/png;base64,${base64Data}`;
+        base64DataUri = `data:image/png;base64,${base64Data}`;
 
-        attachments.push({
+        // Raw attachment for QR Pass
+        rawAttachments.push({
           filename: 'Auditorium_Entry_QR_Pass.png',
           content: qrBuffer,
           contentType: 'image/png',
           cid: 'qrcode_pass'
         });
 
+        // Use CID for inline, fallback to base64 Data URI for webmail compatibility
         qrImageHtml = `
           <div style="text-align: center; margin: 24px 0;">
             <div style="display: inline-block; background: #ffffff; padding: 22px; border-radius: 16px; border: 2px dashed #d97757; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.08);">
-              <img src="cid:qrcode_pass" alt="Auditorium Entry QR Pass" style="width: 220px; height: 220px; display: block; margin: 0 auto 12px; border-radius: 8px;" />
+              <img src="${service === 'smtp' ? 'cid:qrcode_pass' : base64DataUri}" alt="Auditorium Entry QR Pass" style="width: 220px; height: 220px; display: block; margin: 0 auto 12px; border-radius: 8px;" />
               <span style="font-size: 14px; font-weight: 800; color: #d97757; text-transform: uppercase; letter-spacing: 0.5px;">AUDITORIUM ENTRY QR PASS</span>
-              <p style="font-size: 11px; color: #64748b; margin: 6px 0 0;">Present this QR Pass at the entrance scanner for instant check-in (Pass saved as attachment)</p>
+              <p style="font-size: 11px; color: #64748b; margin: 6px 0 0;">Present this QR Pass at the entrance scanner for instant check-in</p>
             </div>
           </div>
         `;
@@ -86,21 +91,151 @@ const sendEmail = async (options) => {
       </div>
     `;
 
-    const mailOptions = {
-      from: `${process.env.FROM_NAME || 'E-Cell Startup Pitching'} <${process.env.FROM_EMAIL || smtpUser}>`,
-      to: options.email,
-      subject: options.subject,
-      html: options.customHtml || defaultHtml,
-      attachments
-    };
+    const finalHtml = options.customHtml || defaultHtml;
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`[Email Sent] ID: ${info.messageId} to ${options.email}`);
-    return { success: true, info };
+    // Dispatch based on active EMAIL_SERVICE
+    if (service === 'resend' && process.env.RESEND_API_KEY) {
+      return await sendViaResend({
+        to: options.email,
+        fromName,
+        fromEmail,
+        subject: options.subject,
+        html: finalHtml,
+        attachments: rawAttachments
+      });
+    }
+
+    if (service === 'sendgrid' && process.env.SENDGRID_API_KEY) {
+      return await sendViaSendGrid({
+        to: options.email,
+        fromName,
+        fromEmail,
+        subject: options.subject,
+        html: finalHtml,
+        attachments: rawAttachments
+      });
+    }
+
+    // Default Fallback: SMTP (Gmail / Custom SMTP via Nodemailer)
+    return await sendViaSMTP({
+      to: options.email,
+      fromName,
+      fromEmail,
+      subject: options.subject,
+      html: finalHtml,
+      attachments: rawAttachments
+    });
+
   } catch (error) {
     console.error(`[Email Error] Failed to send to ${options.email}:`, error.message);
     return { success: false, error: error.message };
   }
+};
+
+/**
+ * Send via Resend API
+ */
+const sendViaResend = async ({ to, fromName, fromEmail, subject, html, attachments }) => {
+  if (!ResendSDK) throw new Error('Resend package is not installed');
+  const resend = new ResendSDK(process.env.RESEND_API_KEY);
+
+  const formattedAttachments = attachments.map(att => {
+    let contentBuffer = att.content;
+    if (!contentBuffer && att.path) {
+      contentBuffer = fs.readFileSync(att.path);
+    }
+    return {
+      filename: att.filename,
+      content: contentBuffer ? contentBuffer.toString('base64') : ''
+    };
+  }).filter(att => att.content);
+
+  console.log(`[Email Engine] Sending via Resend API to ${to}...`);
+  const response = await resend.emails.send({
+    from: `${fromName} <onboarding@resend.dev>`, // or verified domain
+    to,
+    subject,
+    html,
+    attachments: formattedAttachments
+  });
+
+  if (response.error) {
+    throw new Error(response.error.message || 'Resend delivery failed');
+  }
+
+  console.log(`[Email Sent - Resend] ID: ${response.data.id} to ${to}`);
+  return { success: true, info: response.data, provider: 'resend' };
+};
+
+/**
+ * Send via SendGrid API
+ */
+const sendViaSendGrid = async ({ to, fromName, fromEmail, subject, html, attachments }) => {
+  if (!sgMailSDK) throw new Error('SendGrid package is not installed');
+  sgMailSDK.setApiKey(process.env.SENDGRID_API_KEY);
+
+  const formattedAttachments = attachments.map(att => {
+    let base64Content = '';
+    if (att.content && Buffer.isBuffer(att.content)) {
+      base64Content = att.content.toString('base64');
+    } else if (att.path && fs.existsSync(att.path)) {
+      base64Content = fs.readFileSync(att.path).toString('base64');
+    }
+
+    return {
+      filename: att.filename,
+      content: base64Content,
+      type: att.contentType || 'application/octet-stream',
+      disposition: 'attachment'
+    };
+  }).filter(att => att.content);
+
+  console.log(`[Email Engine] Sending via SendGrid API to ${to}...`);
+  const msg = {
+    to,
+    from: { email: fromEmail, name: fromName },
+    subject,
+    html,
+    attachments: formattedAttachments
+  };
+
+  const response = await sgMailSDK.send(msg);
+  console.log(`[Email Sent - SendGrid] to ${to}`);
+  return { success: true, info: response, provider: 'sendgrid' };
+};
+
+/**
+ * Send via Nodemailer SMTP (Gmail or custom SMTP)
+ */
+const sendViaSMTP = async ({ to, fromName, fromEmail, subject, html, attachments }) => {
+  const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
+  const smtpUser = (process.env.SMTP_USER || 'for12345freelancing@gmail.com').trim();
+  const smtpPass = (process.env.SMTP_PASS || 'hufcciatriruuhbr').trim().replace(/\s+/g, '');
+  const port = parseInt(process.env.SMTP_PORT) || 587;
+
+  const transporter = nodemailer.createTransport({
+    host: smtpHost,
+    port: port,
+    secure: port === 465,
+    auth: { user: smtpUser, pass: smtpPass },
+    tls: { rejectUnauthorized: false },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000
+  });
+
+  console.log(`[Email Engine] Sending via Nodemailer SMTP (${smtpHost}) to ${to}...`);
+  const mailOptions = {
+    from: `${fromName} <${fromEmail}>`,
+    to,
+    subject,
+    html,
+    attachments
+  };
+
+  const info = await transporter.sendMail(mailOptions);
+  console.log(`[Email Sent - SMTP] ID: ${info.messageId} to ${to}`);
+  return { success: true, info, provider: 'smtp' };
 };
 
 // ============================================================
