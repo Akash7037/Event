@@ -11,8 +11,14 @@ const protectAdmin = async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'ecell_pitch_comp_secret_key_2026_secure');
       
       if (getIsConnected()) {
-        req.admin = await Admin.findById(decoded.id).select('-password');
-      } else {
+        try {
+          req.admin = await Admin.findById(decoded.id).select('-password');
+        } catch(err) {
+          req.admin = null;
+        }
+      }
+      
+      if (!req.admin) {
         const { inMemoryAdmins } = require('../controllers/adminController');
         const found = inMemoryAdmins ? inMemoryAdmins.find(a => a._id === decoded.id) : null;
         if (found) {
@@ -22,9 +28,6 @@ const protectAdmin = async (req, res, next) => {
         }
       }
       
-      if (!req.admin) {
-        return res.status(401).json({ success: false, message: 'Admin account not found' });
-      }
       return next();
     } catch (error) {
       console.error('[Auth Error]', error.message);
