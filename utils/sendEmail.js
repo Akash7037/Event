@@ -93,30 +93,46 @@ const sendEmail = async (options) => {
 
     const finalHtml = options.customHtml || defaultHtml;
 
-    // Dispatch based on active EMAIL_SERVICE
-    if (service === 'resend' && process.env.RESEND_API_KEY) {
-      return await sendViaResend({
-        to: options.email,
-        fromName,
-        fromEmail,
-        subject: options.subject,
-        html: finalHtml,
-        attachments: rawAttachments
-      });
+    // Dispatch based on active EMAIL_SERVICE with automatic failover
+    if (service === 'resend') {
+      if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY.trim() !== '') {
+        try {
+          return await sendViaResend({
+            to: options.email,
+            fromName,
+            fromEmail,
+            subject: options.subject,
+            html: finalHtml,
+            attachments: rawAttachments
+          });
+        } catch (resendErr) {
+          console.warn(`[Email Failover] Resend failed (${resendErr.message}). Retrying via Nodemailer SMTP...`);
+        }
+      } else {
+        console.warn('[Email Warning] RESEND_API_KEY missing in .env. Falling back to SMTP...');
+      }
     }
 
-    if (service === 'sendgrid' && process.env.SENDGRID_API_KEY) {
-      return await sendViaSendGrid({
-        to: options.email,
-        fromName,
-        fromEmail,
-        subject: options.subject,
-        html: finalHtml,
-        attachments: rawAttachments
-      });
+    if (service === 'sendgrid') {
+      if (process.env.SENDGRID_API_KEY && process.env.SENDGRID_API_KEY.trim() !== '') {
+        try {
+          return await sendViaSendGrid({
+            to: options.email,
+            fromName,
+            fromEmail,
+            subject: options.subject,
+            html: finalHtml,
+            attachments: rawAttachments
+          });
+        } catch (sgErr) {
+          console.warn(`[Email Failover] SendGrid failed (${sgErr.message}). Retrying via Nodemailer SMTP...`);
+        }
+      } else {
+        console.warn('[Email Warning] SENDGRID_API_KEY missing in .env. Falling back to SMTP...');
+      }
     }
 
-    // Default Fallback: SMTP (Gmail / Custom SMTP via Nodemailer)
+    // Default & Failover Transporter: SMTP (Gmail / Custom SMTP via Nodemailer)
     return await sendViaSMTP({
       to: options.email,
       fromName,

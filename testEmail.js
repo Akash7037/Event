@@ -1,8 +1,6 @@
 require('dotenv').config();
 const { sendEmail } = require('./utils/sendEmail');
 
-// Accept target email from command line argument (e.g. node testEmail.js your_email@gmail.com)
-// Defaults to FROM_EMAIL or for12345freelancing@gmail.com
 const recipientEmail = process.argv[2] || process.env.FROM_EMAIL || 'for12345freelancing@gmail.com';
 
 async function runTest() {
