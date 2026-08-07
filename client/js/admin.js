@@ -1242,23 +1242,72 @@ async function verifyTicketPayload(payload) {
 
     if (resData.success) {
       const data = resData.data;
+      const leaderInfo = data.leader || {};
+      const leaderDept = data.department || leaderInfo.department || 'N/A';
+      const leaderYear = leaderInfo.year || 'N/A';
+
+      let membersListHtml = `
+        <div style="margin-top: 12px; background: rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); text-align: left;">
+          <div style="font-size: 12px; font-weight: 700; color: var(--accent-emerald); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+            <span><i class="fa-solid fa-users-viewfinder"></i> Team Verification Checklist (${data.totalMembers} Members)</span>
+            <span style="font-size: 10px; background: var(--accent-emerald); color: #fff; padding: 2px 6px; border-radius: 4px;">ID CHECK</span>
+          </div>
+          <div style="font-size: 13px; margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px dashed rgba(255, 255, 255, 0.1);">
+            <span style="color: #eab308; font-weight: 700;">👑 Leader:</span> <strong>${data.leaderName}</strong> 
+            <div style="font-size: 11px; color: var(--text-secondary); margin-left: 18px;">Reg No: <strong>${data.registerNumber}</strong> | Dept: ${leaderDept} | Year: ${leaderYear}</div>
+          </div>
+      `;
+
+      if (data.members && data.members.length > 0) {
+        membersListHtml += data.members.map((m, idx) => `
+          <div style="font-size: 13px; margin-bottom: 4px;">
+            <span style="color: #38bdf8; font-weight: 700;">👤 Member ${idx + 2}:</span> <strong>${m.name}</strong>
+            <div style="font-size: 11px; color: var(--text-secondary); margin-left: 18px;">Reg No: <strong>${m.registerNumber || 'N/A'}</strong> | Dept: ${m.department || 'N/A'} | Year: ${m.year || 'N/A'}</div>
+          </div>
+        `).join('');
+      } else {
+        membersListHtml += `<div style="font-size: 11px; color: var(--text-secondary);">Single Member Team</div>`;
+      }
+      membersListHtml += `</div>`;
+
       resultBox.style.background = 'rgba(21, 128, 61, 0.12)';
       resultBox.style.border = '1.5px solid var(--accent-emerald)';
       resultBox.innerHTML = `
         <div style="color: var(--accent-emerald); font-weight: 800; font-size: 16px; margin-bottom: 6px;">
           <i class="fa-solid fa-circle-check"></i> ${resData.message}
         </div>
-        <div style="font-size: 14px; font-weight: 700; color: var(--text-primary);">${data.startupName || data.teamName}</div>
-        <div style="font-size: 13px; color: var(--text-secondary);">Team: ${data.teamName} | Leader: ${data.leaderName} (${data.registerNumber})</div>
-        <div style="font-size: 13px; font-weight: 700; color: var(--accent-emerald); margin-top: 6px;">
-          👥 Total Members Allowed Entry: ${data.totalMembers}
-        </div>
+        <div style="font-size: 15px; font-weight: 700; color: var(--text-primary);">${data.startupName || data.teamName}</div>
+        <div style="font-size: 13px; color: var(--text-secondary);">Team Name: <strong>${data.teamName}</strong></div>
+        ${membersListHtml}
       `;
       showToast('ENTRY APPROVED!', 'success');
       loadAdminStats();
       loadTeamsData();
     } else if (resData.isAlreadyCheckedIn) {
       const data = resData.data;
+      const leaderInfo = data.leader || {};
+      const leaderDept = data.department || leaderInfo.department || 'N/A';
+      const leaderYear = leaderInfo.year || 'N/A';
+
+      let membersListHtml = `
+        <div style="margin-top: 12px; background: rgba(255, 255, 255, 0.05); padding: 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); text-align: left;">
+          <div style="font-size: 12px; font-weight: 700; color: var(--accent-amber); margin-bottom: 6px;">
+            <i class="fa-solid fa-users"></i> Registered Team Members (${data.totalMembers})
+          </div>
+          <div style="font-size: 12px; margin-bottom: 4px;">
+            <span style="color: #eab308; font-weight: 700;">👑 Leader:</span> <strong>${data.leaderName}</strong> (${data.registerNumber}) - ${leaderDept}
+          </div>
+      `;
+
+      if (data.members && data.members.length > 0) {
+        membersListHtml += data.members.map((m, idx) => `
+          <div style="font-size: 12px; margin-bottom: 2px;">
+            <span style="color: #38bdf8; font-weight: 700;">👤 Member ${idx + 2}:</span> <strong>${m.name}</strong> (${m.registerNumber || 'N/A'}) - ${m.department || 'N/A'}
+          </div>
+        `).join('');
+      }
+      membersListHtml += `</div>`;
+
       resultBox.style.background = 'rgba(217, 119, 6, 0.12)';
       resultBox.style.border = '1.5px solid var(--accent-amber)';
       resultBox.innerHTML = `
@@ -1266,7 +1315,8 @@ async function verifyTicketPayload(payload) {
           <i class="fa-solid fa-triangle-exclamation"></i> DUPLICATE TICKET WARNING
         </div>
         <p style="font-size: 13px; color: var(--text-primary); margin-bottom: 4px;">Pass was already scanned and checked in at <strong>${new Date(data.checkedInAt).toLocaleTimeString()}</strong>.</p>
-        <div style="font-size: 13px; color: var(--text-secondary);">Startup: ${data.startupName} | Leader: ${data.leaderName}</div>
+        <div style="font-size: 13px; color: var(--text-secondary);">Startup: <strong>${data.startupName}</strong></div>
+        ${membersListHtml}
       `;
       showToast('DUPLICATE TICKET WARNING', 'warning');
     } else {

@@ -649,7 +649,11 @@ exports.verifyAuditoriumTicket = async (req, res, next) => {
         data: {
           teamName: team.teamName,
           startupName: team.startupName || team.teamName,
+          leader: team.leader || {},
           leaderName: team.leader ? team.leader.name : 'Leader',
+          registerNumber: team.leader ? team.leader.registerNumber : '',
+          department: team.leader ? team.leader.department : '',
+          members: team.members || [],
           totalMembers: 1 + (team.members ? team.members.length : 0),
           checkedInAt: team.checkedInAt
         }
@@ -676,9 +680,11 @@ exports.verifyAuditoriumTicket = async (req, res, next) => {
         id: team._id,
         teamName: team.teamName,
         startupName: team.startupName || team.teamName,
+        leader: team.leader || {},
         leaderName: team.leader ? team.leader.name : 'Leader',
         registerNumber: team.leader ? team.leader.registerNumber : '',
         department: team.leader ? team.leader.department : '',
+        members: team.members || [],
         totalMembers: 1 + (team.members ? team.members.length : 0),
         checkedInAt: checkInTime
       }
