@@ -1157,29 +1157,3 @@ async function verifyTicketPayload(payload) {
     resultBox.innerHTML = `<p style="color: var(--accent-rose); font-size: 13px;">Network error verifying ticket.</p>`;
   }
 }
-
-
-<div style="font-size: 13px; color: var(--text-secondary);">Startup: ${data.startupName} | Leader: ${data.leaderName}</div>
-`;
-      showToast('DUPLICATE TICKET WARNING', 'warning');
-    } else {
-      resultBox.style.background = 'rgba(220, 38, 38, 0.12)';
-      resultBox.style.border = '1.5px solid var(--accent-rose)';
-      resultBox.innerHTML = `
-  < div style = "color: var(--accent-rose); font-weight: 800; font-size: 15px; margin-bottom: 4px;" >
-    <i class="fa-solid fa-circle-xmark"></i> ENTRY DENIED
-        </div >
-  <p style="font-size: 13px; color: var(--text-primary);">${resData.message}</p>
-`;
-      showToast(resData.message || 'Ticket verification failed', 'error');
-    }
-
-  } catch (error) {
-    console.error('Ticket verification error:', error);
-    resultBox.style.background = 'rgba(220, 38, 38, 0.12)';
-    resultBox.style.border = '1.5px solid var(--accent-rose)';
-    resultBox.innerHTML = `< p style = "color: var(--accent-rose); font-size: 13px;" > Network error verifying ticket.</p > `;
-  }
-}
-
-
