@@ -66,13 +66,15 @@ const sendEmail = async (options) => {
           cid: 'qrcode_pass'
         });
 
-        // Use CID for inline, fallback to base64 Data URI for webmail compatibility
+        const publicQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrString)}`;
+
+        // HTTPS QR URL works on 100% of mail clients (Gmail web/app, Outlook, Apple Mail)
         qrImageHtml = `
           <div style="text-align: center; margin: 24px 0;">
             <div style="display: inline-block; background: #ffffff; padding: 22px; border-radius: 16px; border: 2px dashed #d97757; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.08);">
-              <img src="${service === 'smtp' ? 'cid:qrcode_pass' : base64DataUri}" alt="Auditorium Entry QR Pass" style="width: 220px; height: 220px; display: block; margin: 0 auto 12px; border-radius: 8px;" />
+              <img src="${publicQrUrl}" alt="Auditorium Entry QR Pass" style="width: 220px; height: 220px; display: block; margin: 0 auto 12px; border-radius: 8px; border: 0;" />
               <span style="font-size: 14px; font-weight: 800; color: #d97757; text-transform: uppercase; letter-spacing: 0.5px;">AUDITORIUM ENTRY QR PASS</span>
-              <p style="font-size: 11px; color: #64748b; margin: 6px 0 0;">Present this QR Pass at the entrance scanner for instant check-in</p>
+              <p style="font-size: 11px; color: #64748b; margin: 6px 0 0;">Present this QR Pass at the entrance scanner for instant check-in (Saved as PNG attachment)</p>
             </div>
           </div>
         `;
