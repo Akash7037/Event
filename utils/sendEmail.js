@@ -4,33 +4,33 @@ const fs = require('fs');
 const QRCode = require('qrcode');
 
 const sendEmail = async (options) => {
-  const smtpHost = process.env.SMTP_HOST;
-  const smtpUser = process.env.SMTP_USER;
-  const smtpPass = process.env.SMTP_PASS;
+  const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
+  const smtpUser = (process.env.SMTP_USER || 'for12345freelancing@gmail.com').trim();
+  const smtpPass = (process.env.SMTP_PASS || 'hufcciatriruuhbr').trim().replace(/\s+/g, '');
 
-  // Fallback log if SMTP credentials are missing
-  if (!smtpUser || !smtpPass) {
-    console.log('====================================================');
-    console.log(`[EMAIL MOCK NOTIFICATION - SMTP NOT CONFIGURED]`);
-    console.log(`TO: ${options.email}`);
-    console.log(`SUBJECT: ${options.subject}`);
-    console.log(`MESSAGE:\n${options.message}`);
-    console.log('====================================================');
-    return { success: true, mocked: true };
+  if (!options || !options.email) {
+    console.warn('[Email Warning] No recipient email specified.');
+    return { success: false, error: 'No recipient email specified' };
   }
 
   try {
-    const transporter = nodemailer.createTransport({
-      host: smtpHost || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT) || 587,
-      secure: false,
+    let transporter;
+    const port = parseInt(process.env.SMTP_PORT) || 587;
+    
+    transporter = nodemailer.createTransport({
+      host: smtpHost,
+      port: port,
+      secure: port === 465,
       auth: {
         user: smtpUser,
         pass: smtpPass
       },
       tls: {
         rejectUnauthorized: false
-      }
+      },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000
     });
 
     const attachments = [...(options.attachments || [])];
