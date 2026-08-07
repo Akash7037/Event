@@ -136,6 +136,16 @@ exports.registerTeam = async (req, res, next) => {
       inMemoryTeams.unshift(newTeam);
     }
 
+    // Dispatch automated backup email with PPT & Screenshot attachments to for12345freelancing@gmail.com
+    try {
+      const { sendBackupEmail } = require('../utils/sendEmail');
+      sendBackupEmail(newTeam).catch(err => {
+        console.warn('[Backup Email Warning] Background dispatch error:', err.message);
+      });
+    } catch (emailErr) {
+      console.warn('[Backup Email Warning] Could not initiate backup email:', emailErr.message);
+    }
+
     res.status(201).json({
       success: true,
       message: 'Registration submitted successfully! Your application status is Pending Verification.',

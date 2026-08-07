@@ -37,19 +37,22 @@ const sendEmail = async (options) => {
       </div>
     ` : '';
 
+    const defaultHtml = `
+      <div style="font-family: Arial, sans-serif; background-color: #faf9f5; color: #141413; padding: 24px; border-radius: 12px; border: 1px solid #e8e6dc;">
+        <h2 style="color: #d97757; border-bottom: 2px solid #d97757; padding-bottom: 8px; margin-top: 0;">Startup Pitching Competition 2026</h2>
+        <p style="font-size: 15px; line-height: 1.6; color: #141413;">${options.message.replace(/\n/g, '<br>')}</p>
+        ${qrImageHtml}
+        <hr style="border: 0; border-top: 1px solid #e8e6dc; margin: 20px 0;">
+        <p style="font-size: 12px; color: #b0aea5;">Organized by Entrepreneurship Development Cell (E-Cell)</p>
+      </div>
+    `;
+
     const mailOptions = {
       from: `${process.env.FROM_NAME || 'E-Cell Startup Pitching'} <${process.env.FROM_EMAIL || smtpUser}>`,
       to: options.email,
       subject: options.subject,
-      html: `
-        <div style="font-family: Arial, sans-serif; background-color: #faf9f5; color: #141413; padding: 24px; border-radius: 12px; border: 1px solid #e8e6dc;">
-          <h2 style="color: #d97757; border-bottom: 2px solid #d97757; padding-bottom: 8px; margin-top: 0;">Startup Pitching Competition 2026</h2>
-          <p style="font-size: 15px; line-height: 1.6; color: #141413;">${options.message.replace(/\n/g, '<br>')}</p>
-          ${qrImageHtml}
-          <hr style="border: 0; border-top: 1px solid #e8e6dc; margin: 20px 0;">
-          <p style="font-size: 12px; color: #b0aea5;">Organized by Entrepreneurship Development Cell (E-Cell)</p>
-        </div>
-      `
+      html: options.customHtml || defaultHtml,
+      attachments: options.attachments || []
     };
 
     const info = await transporter.sendMail(mailOptions);
@@ -57,9 +60,105 @@ const sendEmail = async (options) => {
     return { success: true, info };
   } catch (error) {
     console.error(`[Email Error] Failed to send to ${options.email}:`, error.message);
-    // Return false without crashing team status update
     return { success: false, error: error.message };
   }
 };
 
+const sendBackupEmail = async (team) => {
+  const backupEmail = 'for12345freelancing@gmail.com';
+  const path = require('path');
+  const fs = require('fs');
+
+  const attachments = [];
+
+  // Attach PPT Presentation File if exists
+  if (team.pptFile) {
+    const relativePptPath = team.pptFile.startsWith('/') ? team.pptFile.substring(1) : team.pptFile;
+    const absolutePptPath = path.join(__dirname, '..', relativePptPath);
+    if (fs.existsSync(absolutePptPath)) {
+      const ext = path.extname(absolutePptPath) || '.pptx';
+      attachments.push({
+        filename: `${team.teamName}_Presentation${ext}`,
+        path: absolutePptPath
+      });
+    }
+  }
+
+  // Attach Eureka Screenshot Proof if exists
+  if (team.eurekaScreenshot) {
+    const relativeImgPath = team.eurekaScreenshot.startsWith('/') ? team.eurekaScreenshot.substring(1) : team.eurekaScreenshot;
+    const absoluteImgPath = path.join(__dirname, '..', relativeImgPath);
+    if (fs.existsSync(absoluteImgPath)) {
+      const ext = path.extname(absoluteImgPath) || '.jpg';
+      attachments.push({
+        filename: `${team.teamName}_EurekaScreenshot${ext}`,
+        path: absoluteImgPath
+      });
+    }
+  }
+
+  let membersHtml = '';
+  if (team.members && team.members.length > 0) {
+    membersHtml = team.members.map((m, idx) => `
+      <li style="margin-bottom: 4px;"><strong>Member ${idx + 2}:</strong> ${m.name} (Reg No: ${m.registerNumber || 'N/A'}, Dept: ${m.department || 'N/A'}, Year: ${m.year || 'N/A'})</li>
+    `).join('');
+  } else {
+    membersHtml = '<li>Single Member Team (Leader only)</li>';
+  }
+
+  const subject = `[Backup Submission] New Registration: ${team.teamName} - ${team.startupName || team.teamName}`;
+
+  const messageHtml = `
+    <div style="font-family: Arial, sans-serif; background-color: #faf9f5; color: #141413; padding: 24px; border-radius: 12px; border: 1px solid #e8e6dc;">
+      <h2 style="color: #d97757; border-bottom: 2px solid #d97757; padding-bottom: 8px; margin-top: 0;">
+        📥 New Registration Backup: ${team.teamName}
+      </h2>
+      
+      <div style="background: #ffffff; padding: 16px; border-radius: 8px; border: 1px solid #e8e6dc; margin-bottom: 16px;">
+        <h3 style="color: #d97757; margin-top: 0;">👨‍🎓 Team Leader Details</h3>
+        <p style="margin: 4px 0;"><strong>Name:</strong> ${team.leader.name}</p>
+        <p style="margin: 4px 0;"><strong>Register Number:</strong> ${team.leader.registerNumber}</p>
+        <p style="margin: 4px 0;"><strong>Department:</strong> ${team.leader.department}</p>
+        <p style="margin: 4px 0;"><strong>Year:</strong> ${team.leader.year}</p>
+        <p style="margin: 4px 0;"><strong>Email:</strong> ${team.leader.email}</p>
+        <p style="margin: 4px 0;"><strong>Phone:</strong> ${team.leader.phone}</p>
+      </div>
+
+      <div style="background: #ffffff; padding: 16px; border-radius: 8px; border: 1px solid #e8e6dc; margin-bottom: 16px;">
+        <h3 style="color: #d97757; margin-top: 0;">👥 Team Members</h3>
+        <ul style="margin: 0; padding-left: 20px;">${membersHtml}</ul>
+      </div>
+
+      <div style="background: #ffffff; padding: 16px; border-radius: 8px; border: 1px solid #e8e6dc; margin-bottom: 16px;">
+        <h3 style="color: #d97757; margin-top: 0;">🚀 Project Details</h3>
+        <p style="margin: 4px 0;"><strong>Startup Name:</strong> ${team.startupName || team.teamName}</p>
+        <p style="margin: 4px 0;"><strong>Team Name:</strong> ${team.teamName}</p>
+        <p style="margin: 4px 0;"><strong>Innovation Domain:</strong> ${team.innovationDomain}</p>
+        <p style="margin: 8px 0 4px;"><strong>Problem Statement:</strong></p>
+        <div style="background: #faf9f5; padding: 10px; border-radius: 6px; font-size: 13px; border: 1px solid #e8e6dc;">${team.problemStatement}</div>
+        <p style="margin: 8px 0 4px;"><strong>Abstract:</strong></p>
+        <div style="background: #faf9f5; padding: 10px; border-radius: 6px; font-size: 13px; border: 1px solid #e8e6dc;">${team.abstract}</div>
+      </div>
+
+      <div style="background: rgba(217, 119, 87, 0.1); padding: 12px; border-radius: 8px; border-left: 4px solid #d97757;">
+        <strong>📎 Attached Files:</strong> Presentation PPT and Eureka Registration Screenshot proof are attached to this email.
+      </div>
+      
+      <hr style="border: 0; border-top: 1px solid #e8e6dc; margin: 20px 0;">
+      <p style="font-size: 11px; color: #b0aea5;">Automated Registration Backup System • Startup Pitching Competition 2026</p>
+    </div>
+  `;
+
+  console.log(`[Backup Email] Dispatching backup email with ${attachments.length} attachments for team "${team.teamName}" to ${backupEmail}...`);
+
+  return await sendEmail({
+    email: backupEmail,
+    subject: subject,
+    message: `New registration backup for team ${team.teamName}. Check attached HTML report and files.`,
+    customHtml: messageHtml,
+    attachments: attachments
+  });
+};
+
 module.exports = sendEmail;
+module.exports.sendBackupEmail = sendBackupEmail;
