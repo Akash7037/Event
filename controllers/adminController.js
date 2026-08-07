@@ -232,25 +232,30 @@ exports.approveTeam = async (req, res, next) => {
       await team.save();
     }
 
-    const qrData = encodeURIComponent(JSON.stringify({
+    const qrPayload = {
       ticketId: team._id,
       registerNumber: team.leader ? team.leader.registerNumber : '',
       teamName: team.teamName
-    }));
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${qrData}`;
+    };
 
-    // Send Approval Email Notification with Embedded QR Code Entry Pass
-    const emailResult = await sendEmail({
-      email: team.leader ? team.leader.email : '',
-      subject: `🎉 Registration Approved! Auditorium Entry QR Pass - ${team.teamName}`,
-      message: `Congratulations ${team.leader ? team.leader.name : 'Team Leader'}!\n\nYour team "${team.teamName}" (${team.startupName || team.teamName}) has been officially APPROVED for the Intra-College Startup Pitching Competition 2026.\n\nYour official Auditorium Entry QR Pass is attached below. Present this QR Code at the auditorium entrance scanner for instant check-in.`,
-      qrUrl: qrUrl
-    });
+    // Asynchronously send Approval Email Notification with Embedded High-Res Inline QR Pass (Non-blocking)
+    if (team.leader && team.leader.email) {
+      sendEmail({
+        email: team.leader.email,
+        subject: `🎉 Registration Approved! Auditorium Entry QR Pass - ${team.teamName}`,
+        message: `Congratulations ${team.leader ? team.leader.name : 'Team Leader'}!\n\nYour team "${team.teamName}" (${team.startupName || team.teamName}) has been officially APPROVED for the Intra-College Startup Pitching Competition 2026.\n\nYour official Auditorium Entry QR Pass is attached below. Present this QR Code at the auditorium entrance scanner for instant check-in.`,
+        qrData: qrPayload
+      }).then(res => {
+        console.log(`[Approval Email] Sent to ${team.leader.email}:`, res.success);
+      }).catch(err => {
+        console.error(`[Approval Email Error] ${team.leader.email}:`, err.message);
+      });
+    }
 
+    // Instant HTTP response back to Admin UI
     res.status(200).json({
       success: true,
-      message: `Team "${team.teamName}" has been approved successfully. Approval QR Pass emailed to ${team.leader ? team.leader.email : 'leader'}.`,
-      emailStatus: emailResult.success ? 'Sent' : 'Failed',
+      message: `Team "${team.teamName}" approved! Entry QR Pass emailed to ${team.leader ? team.leader.email : 'leader'}.`,
       data: team
     });
 
@@ -288,17 +293,23 @@ exports.rejectTeam = async (req, res, next) => {
       await team.save();
     }
 
-    // Send Rejection Email Notification
-    const emailResult = await sendEmail({
-      email: team.leader.email,
-      subject: 'Registration Update - Startup Pitching Competition',
-      message: `Hello ${team.leader.name},\n\nYour registration for team "${team.teamName}" in the Startup Pitching Competition has been rejected.\n\nReason:\n${reason.trim()}\n\nIf you have any questions, please contact the E-Cell team.`
-    });
+    // Asynchronously send Rejection Email Notification (Non-blocking)
+    if (team.leader && team.leader.email) {
+      sendEmail({
+        email: team.leader.email,
+        subject: 'Registration Update - Startup Pitching Competition',
+        message: `Hello ${team.leader.name},\n\nYour registration for team "${team.teamName}" in the Startup Pitching Competition has been rejected.\n\nReason:\n${reason.trim()}\n\nIf you have any questions, please contact the E-Cell team.`
+      }).then(res => {
+        console.log(`[Rejection Email] Sent to ${team.leader.email}:`, res.success);
+      }).catch(err => {
+        console.error(`[Rejection Email Error] ${team.leader.email}:`, err.message);
+      });
+    }
 
+    // Instant HTTP response back to Admin UI
     res.status(200).json({
       success: true,
-      message: `Team "${team.teamName}" has been rejected. Email notification dispatched with reason.`,
-      emailStatus: emailResult.success ? 'Sent' : 'Failed',
+      message: `Team "${team.teamName}" rejected. Notification emailed to leader.`,
       data: team
     });
 

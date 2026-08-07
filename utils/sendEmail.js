@@ -1,6 +1,7 @@
 const nodemailer = require('nodemailer');
 const path = require('path');
 const fs = require('fs');
+const QRCode = require('qrcode');
 
 const sendEmail = async (options) => {
   const smtpHost = process.env.SMTP_HOST;
@@ -29,15 +30,48 @@ const sendEmail = async (options) => {
       }
     });
 
-    const qrImageHtml = options.qrUrl ? `
-      <div style="text-align: center; margin: 20px 0;">
-        <div style="display: inline-block; background: #ffffff; padding: 20px; border-radius: 12px; border: 2px dashed #d97757; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-          <img src="${options.qrUrl}" alt="Auditorium Entry QR Pass" style="width: 200px; height: 200px; display: block; margin: 0 auto 10px;" />
-          <span style="font-size: 13px; font-weight: 700; color: #141413; text-transform: uppercase;">AUDITORIUM ENTRY QR PASS</span>
-          <p style="font-size: 11px; color: #64748b; margin: 4px 0 0;">Show this QR Pass at the entrance scanner for instant check-in</p>
+    const attachments = [...(options.attachments || [])];
+    let qrImageHtml = '';
+
+    if (options.qrData) {
+      try {
+        const qrString = typeof options.qrData === 'object' ? JSON.stringify(options.qrData) : String(options.qrData);
+        const qrBuffer = await QRCode.toBuffer(qrString, {
+          type: 'png',
+          margin: 2,
+          width: 320,
+          color: { dark: '#141413', light: '#ffffff' }
+        });
+
+        attachments.push({
+          filename: 'Auditorium_Entry_QR_Pass.png',
+          content: qrBuffer,
+          cid: 'qrcode_pass'
+        });
+
+        qrImageHtml = `
+          <div style="text-align: center; margin: 24px 0;">
+            <div style="display: inline-block; background: #ffffff; padding: 22px; border-radius: 16px; border: 2px dashed #d97757; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.08);">
+              <img src="cid:qrcode_pass" alt="Auditorium Entry QR Pass" style="width: 220px; height: 220px; display: block; margin: 0 auto 12px; border-radius: 8px;" />
+              <span style="font-size: 14px; font-weight: 800; color: #d97757; text-transform: uppercase; letter-spacing: 0.5px;">AUDITORIUM ENTRY QR PASS</span>
+              <p style="font-size: 11px; color: #64748b; margin: 6px 0 0;">Present this QR Pass at the entrance scanner for instant check-in</p>
+            </div>
+          </div>
+        `;
+      } catch (qrErr) {
+        console.error('[QR Generation Error]:', qrErr.message);
+      }
+    } else if (options.qrUrl) {
+      qrImageHtml = `
+        <div style="text-align: center; margin: 20px 0;">
+          <div style="display: inline-block; background: #ffffff; padding: 20px; border-radius: 12px; border: 2px dashed #d97757; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <img src="${options.qrUrl}" alt="Auditorium Entry QR Pass" style="width: 200px; height: 200px; display: block; margin: 0 auto 10px;" />
+            <span style="font-size: 13px; font-weight: 700; color: #141413; text-transform: uppercase;">AUDITORIUM ENTRY QR PASS</span>
+            <p style="font-size: 11px; color: #64748b; margin: 4px 0 0;">Show this QR Pass at the entrance scanner for instant check-in</p>
+          </div>
         </div>
-      </div>
-    ` : '';
+      `;
+    }
 
     const defaultHtml = `
       <div style="font-family: Arial, sans-serif; background-color: #faf9f5; color: #141413; padding: 24px; border-radius: 12px; border: 1px solid #e8e6dc;">
@@ -54,7 +88,7 @@ const sendEmail = async (options) => {
       to: options.email,
       subject: options.subject,
       html: options.customHtml || defaultHtml,
-      attachments: options.attachments || []
+      attachments
     };
 
     const info = await transporter.sendMail(mailOptions);
