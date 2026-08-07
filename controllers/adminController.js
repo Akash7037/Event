@@ -644,3 +644,78 @@ exports.toggleRegistration = (req, res) => {
   });
 };
 
+// @desc    Manually dispatch backup email for a team to for12345freelancing@gmail.com
+// @route   POST /api/admin/teams/:id/send-backup
+// @access  Private (Admin)
+exports.sendBackupEmailForTeam = async (req, res, next) => {
+  try {
+    let team;
+    if (getIsConnected()) {
+      team = await Team.findById(req.params.id);
+    } else {
+      const { inMemoryTeams } = require('./teamController');
+      team = inMemoryTeams ? inMemoryTeams.find(t => t._id === req.params.id) : null;
+    }
+
+    if (!team) {
+      return res.status(404).json({ success: false, message: 'Team registration not found.' });
+    }
+
+    const { sendBackupEmail } = require('../utils/sendEmail');
+    const result = await sendBackupEmail(team);
+
+    res.status(200).json({
+      success: true,
+      message: `Backup email containing PPT and Screenshot dispatched to for12345freelancing@gmail.com for team "${team.teamName}"!`,
+      result
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Bulk dispatch backup emails (PPT + Screenshot) for ALL teams to for12345freelancing@gmail.com
+// @route   POST /api/admin/send-all-backups
+// @access  Private (Admin)
+exports.sendAllBackupEmails = async (req, res, next) => {
+  try {
+    const { sendBackupEmail } = require('../utils/sendEmail');
+    let teams = [];
+
+    if (getIsConnected()) {
+      teams = await Team.find({}).sort({ submittedAt: -1 });
+    } else {
+      const { inMemoryTeams } = require('./teamController');
+      teams = inMemoryTeams ? [...inMemoryTeams] : [];
+    }
+
+    if (teams.length === 0) {
+      return res.status(200).json({ success: true, message: 'No team registrations found to send backup emails for.' });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Started dispatching backup emails for ${teams.length} team(s) to for12345freelancing@gmail.com. Check server logs for progress.`,
+      count: teams.length
+    });
+
+    // Asynchronously dispatch backup email for each team
+    for (const team of teams) {
+      try {
+        const result = await sendBackupEmail(team);
+        console.log(`[Bulk Backup] Team "${team.teamName}": ${result.success ? 'SENT ✅' : 'FAILED ❌ ' + (result.error || 'unknown error')}`);
+      } catch (emailErr) {
+        console.warn(`[Bulk Backup] Team "${team.teamName}" error:`, emailErr.message);
+      }
+    }
+    console.log(`[Bulk Backup] Completed dispatching backup emails for ${teams.length} team(s).`);
+
+  } catch (error) {
+    if (!res.headersSent) {
+      next(error);
+    }
+  }
+};
+
+

@@ -167,4 +167,5 @@ const sendBackupEmail = async (team) => {
 };
 
 module.exports = sendEmail;
+module.exports.sendEmail = sendEmail;
 module.exports.sendBackupEmail = sendBackupEmail;

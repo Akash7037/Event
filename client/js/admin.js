@@ -454,6 +454,9 @@ async function openTeamDetailsModal(teamId) {
           <a href="${screenshotUrl}" target="_blank" class="btn-secondary" style="text-decoration: none; border-color: var(--accent-cyan);">
             <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Raw Screenshot
           </a>
+          <button type="button" class="btn-secondary" style="border-color: var(--accent-terracotta); color: var(--accent-terracotta);" onclick="triggerManualBackupEmail('${team._id}')">
+            <i class="fa-solid fa-envelope"></i> Send Backup Email to for12345freelancing@gmail.com
+          </button>
         </div>
         <p style="font-size: 12px; color: var(--text-muted); margin-top: 10px;">
           <i class="fa-solid fa-circle-info"></i> Verify that the Eureka registration screenshot clearly contains NEC ID <strong>NEC2621509</strong> before approving.
@@ -480,6 +483,53 @@ function closeTeamDetailsModal() {
   document.getElementById('team-details-modal').classList.remove('active');
   selectedTeamForAction = null;
 }
+
+// Backup Email Dispatch Functions
+async function triggerManualBackupEmail(teamId) {
+  try {
+    showToast('Dispatching backup email with PPT and Screenshot attachments...', 'info');
+    const response = await fetch(`/api/admin/teams/${teamId}/send-backup`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${currentAdminToken}`
+      }
+    });
+    const result = await response.json();
+    if (result.success) {
+      showToast(result.message || 'Backup email sent to for12345freelancing@gmail.com', 'success');
+    } else {
+      showToast(result.message || 'Failed to send backup email', 'error');
+    }
+  } catch (err) {
+    console.error('Backup email dispatch error:', err);
+    showToast('Network error dispatching backup email', 'error');
+  }
+}
+
+async function triggerSendAllBackups() {
+  if (!confirm('Send PPT + Screenshot backup emails for ALL registered teams to for12345freelancing@gmail.com?')) return;
+
+  try {
+    showToast('Starting bulk backup email dispatch...', 'info');
+    const response = await fetch('/api/admin/send-all-backups', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${currentAdminToken}`
+      }
+    });
+    const result = await response.json();
+    if (result.success) {
+      showToast(result.message || `Backup emails dispatched for ${result.count} team(s)!`, 'success');
+    } else {
+      showToast(result.message || 'Failed to dispatch bulk backup emails', 'error');
+    }
+  } catch (err) {
+    console.error('Send all backups error:', err);
+    showToast('Network error dispatching bulk backup emails', 'error');
+  }
+}
+
 
 // Approve Team Handler
 async function handleApproveTeam() {
