@@ -108,30 +108,38 @@ const uploadMiddleware = (req, res, next) => {
         return res.status(400).json({ success: false, message: 'Presentation PPT file exceeds 10MB size limit!' });
       }
 
-      // If Cloudinary credentials are set in environment variables, upload to Cloudinary CDN
+      // If Cloudinary credentials are set in environment variables, upload to Cloudinary CDN in parallel
       if (ensureCloudinaryConfigured()) {
         try {
+          const uploadPromises = [];
+
           if (req.files.eurekaScreenshot && req.files.eurekaScreenshot[0]) {
             const file = req.files.eurekaScreenshot[0];
-            const result = await cloudinary.uploader.upload(file.path, {
-              folder: 'pitch_competition/screenshots',
-              resource_type: 'auto'
-            });
-            file.cloudinaryUrl = result.secure_url;
-            // Clean up local temp file after cloud upload
-            fs.unlink(file.path, () => {});
+            uploadPromises.push(
+              cloudinary.uploader.upload(file.path, {
+                folder: 'pitch_competition/screenshots',
+                resource_type: 'auto'
+              }).then(result => {
+                file.cloudinaryUrl = result.secure_url;
+                fs.unlink(file.path, () => {});
+              })
+            );
           }
 
           if (req.files.pptFile && req.files.pptFile[0]) {
             const file = req.files.pptFile[0];
-            const result = await cloudinary.uploader.upload(file.path, {
-              folder: 'pitch_competition/ppt',
-              resource_type: 'raw' // 'raw' ensures .ppt/.pptx extension & binary structure are preserved
-            });
-            file.cloudinaryUrl = result.secure_url;
-            // Clean up local temp file after cloud upload
-            fs.unlink(file.path, () => {});
+            uploadPromises.push(
+              cloudinary.uploader.upload(file.path, {
+                folder: 'pitch_competition/ppt',
+                resource_type: 'raw' // 'raw' ensures .ppt/.pptx extension & binary structure are preserved
+              }).then(result => {
+                file.cloudinaryUrl = result.secure_url;
+                fs.unlink(file.path, () => {});
+              })
+            );
           }
+
+          await Promise.all(uploadPromises);
         } catch (cloudErr) {
           console.warn('[Cloudinary Warning] Cloud upload failed, using local disk copy:', cloudErr.message);
         }
