@@ -14,22 +14,22 @@ if (!fs.existsSync(screenshotDir)) {
   fs.mkdirSync(screenshotDir, { recursive: true });
 }
 
-// Check if Cloudinary is configured via environment variables
-const isCloudinaryConfigured = () => {
-  return !!(
-    process.env.CLOUDINARY_CLOUD_NAME &&
-    process.env.CLOUDINARY_API_KEY &&
-    process.env.CLOUDINARY_API_SECRET
-  );
-};
+// Check and dynamically configure Cloudinary via environment variables
+const ensureCloudinaryConfigured = () => {
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  const apiKey = process.env.CLOUDINARY_API_KEY;
+  const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
-if (isCloudinaryConfigured()) {
-  cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
-  });
-}
+  if (cloudName && apiKey && apiSecret) {
+    cloudinary.config({
+      cloud_name: cloudName,
+      api_key: apiKey,
+      api_secret: apiSecret
+    });
+    return true;
+  }
+  return false;
+};
 
 // Storage engine
 const storage = multer.diskStorage({
@@ -109,7 +109,7 @@ const uploadMiddleware = (req, res, next) => {
       }
 
       // If Cloudinary credentials are set in environment variables, upload to Cloudinary CDN
-      if (isCloudinaryConfigured()) {
+      if (ensureCloudinaryConfigured()) {
         try {
           if (req.files.eurekaScreenshot && req.files.eurekaScreenshot[0]) {
             const file = req.files.eurekaScreenshot[0];
