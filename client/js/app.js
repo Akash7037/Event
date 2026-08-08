@@ -796,3 +796,12 @@ window.switchGuideTab = function (type) {
   }
 };
 
+window.initTheme = initTheme;
+window.toggleTheme = toggleTheme;
+
+// Auto Initialize Theme & Form Draft Recovery on DOM Load
+document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
+  restoreFormDraft();
+});
+

@@ -460,6 +460,44 @@ async function loadTeamsData() {
           </tr>
         `;
       }).join('');
+
+      // Populate Touch Mobile Team Cards View (< 768px)
+      const mobileList = document.getElementById('mobile-teams-list');
+      if (mobileList) {
+        mobileList.innerHTML = teams.map(team => {
+          const dateStr = new Date(team.submittedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+          let badgeClass = 'badge-pending';
+          let statusIcon = 'fa-hourglass-half';
+          if (team.status === 'Approved') { badgeClass = 'badge-approved'; statusIcon = 'fa-circle-check'; }
+          else if (team.status === 'Rejected') { badgeClass = 'badge-rejected'; statusIcon = 'fa-circle-xmark'; }
+          const checkInBadge = team.checkedIn ? `<span class="badge badge-approved" style="font-size: 10px; padding: 2px 6px;"><i class="fa-solid fa-qrcode"></i> Present</span>` : '';
+          
+          return `
+            <div class="mobile-team-card">
+              <div class="mobile-team-header">
+                <div>
+                  <div class="mobile-team-name">${team.teamName}</div>
+                  <div class="mobile-startup-name">${team.startupName || team.teamName}</div>
+                </div>
+                <span class="badge ${badgeClass}" style="font-size: 11px;">
+                  <i class="fa-solid ${statusIcon}"></i> ${team.status}
+                </span>
+              </div>
+
+              <div class="mobile-team-meta">
+                <div><strong>Leader:</strong> ${team.leader.name} (${team.leader.registerNumber})</div>
+                <div><strong>Dept/Year:</strong> ${team.leader.department} • ${team.leader.year}</div>
+                <div><strong>Domain:</strong> <span style="color: var(--accent-terracotta);">${team.innovationDomain}</span> • ${dateStr}</div>
+                ${checkInBadge ? `<div><strong>Auditorium Scan:</strong> ${checkInBadge}</div>` : ''}
+              </div>
+
+              <button type="button" class="btn-primary" style="width: 100%; padding: 9px; font-size: 13px; justify-content: center; font-weight: 600;" onclick="openTeamDetailsModal('${team._id}')">
+                <i class="fa-solid fa-eye"></i> View Verification Details
+              </button>
+            </div>
+          `;
+        }).join('');
+      }
     }
   } catch (error) {
     console.error('Failed to load teams:', error);
