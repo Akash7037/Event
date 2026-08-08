@@ -222,7 +222,7 @@
   <!-- Navigation Bar -->
   <header class="navbar">
     <div class="container nav-container">
-      <div>
+      <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;" class="brand-mobile-wrapper">
         <a href="index.html" class="brand">
           <div class="brand-logo-wrapper">
             <img src="assets/ecell_logo.png" alt="E-Cell VSBCETC Logo" class="brand-logo-img">
@@ -232,6 +232,9 @@
             <span>Startup Pitch 2026</span>
           </div>
         </a>
+        <button type="button" class="mobile-theme-header-btn" id="mobile-header-theme-btn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+          <i class="fa-solid fa-moon"></i>
+        </button>
       </div>
       <nav class="nav-links">
         <button class="nav-btn active" id="tab-register-btn" onclick="switchTab('register')">
@@ -805,6 +808,10 @@
       <i class="fa-solid fa-download"></i>
       <span>PPT</span>
     </a>
+    <button class="mobile-nav-btn" id="mobile-tab-theme" onclick="toggleTheme()" title="Toggle Dark/Light Theme">
+      <i class="fa-solid fa-moon" id="mobile-nav-theme-icon"></i>
+      <span id="mobile-nav-theme-text">Theme</span>
+    </button>
   </div>
 
   <script src="js/app.js?v=20260807"></script>
