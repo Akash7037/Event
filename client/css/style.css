@@ -370,21 +370,21 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  min-width: 44px;
-  min-height: 44px;
+  width: 46px;
+  height: 46px;
+  min-width: 46px;
+  min-height: 46px;
   border-radius: 50%;
   background: #ffffff;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12), 0 0 0 2px var(--accent-cyan);
+  box-shadow: 0 4px 16px rgba(217, 119, 87, 0.25);
   padding: 0;
   transition: all 0.3s ease;
   overflow: hidden;
 }
 
 .brand:hover .brand-logo-wrapper {
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2), 0 0 0 2.5px var(--accent-cyan);
-  transform: scale(1.05);
+  box-shadow: 0 6px 22px rgba(217, 119, 87, 0.45);
+  transform: scale(1.06);
 }
 
 .brand-logo-img {
