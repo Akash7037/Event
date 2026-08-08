@@ -26,11 +26,11 @@ async function runComprehensiveAudit() {
     }
   }
 
-  // Create mock test files for multipart upload testing
+  // Create mock test files for multipart upload testing with valid binary header signatures
   const dummyPptPath = path.join(__dirname, 'dummy_test.pptx');
   const dummyImgPath = path.join(__dirname, 'dummy_screenshot.png');
-  fs.writeFileSync(dummyPptPath, 'dummy ppt content for testing');
-  fs.writeFileSync(dummyImgPath, 'dummy png content for testing');
+  fs.writeFileSync(dummyPptPath, Buffer.from([0x50, 0x4B, 0x03, 0x04, 0x14, 0x00, 0x06, 0x00, 0x00, 0x00]));
+  fs.writeFileSync(dummyImgPath, Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00]));
 
   try {
     // TEST 1: Health & Ping Check
@@ -271,6 +271,33 @@ async function runComprehensiveAudit() {
       });
       assert(delRes.status === 200, '18. Admin Team Record & Files Deletion');
     }
+
+    // TEST 19: Binary Magic Byte Signature Security Rejection
+    const fakeFilePath = path.join(__dirname, 'fake_script.png');
+    fs.writeFileSync(fakeFilePath, 'MALICIOUS_EXEC_SCRIPT_DATA');
+    const formDataSpoofed = new FormData();
+    formDataSpoofed.append('teamName', 'Spoof Team');
+    formDataSpoofed.append('leaderName', 'Hacker Bob');
+    formDataSpoofed.append('leaderRegNo', 'SPOOF_' + Date.now());
+    formDataSpoofed.append('leaderDept', 'Computer Science & Engineering');
+    formDataSpoofed.append('leaderYear', '3rd Year');
+    formDataSpoofed.append('leaderEmail', 'hacker@example.com');
+    formDataSpoofed.append('leaderPhone', '9876543210');
+    formDataSpoofed.append('problemStatement', 'Testing spoofed binary.');
+    formDataSpoofed.append('abstract', 'Testing spoofed binary signature validation rejection.');
+    formDataSpoofed.append('innovationDomain', 'AI');
+    formDataSpoofed.append('declarationConfirmed', 'true');
+    formDataSpoofed.append('pptFile', new Blob([fs.readFileSync(dummyPptPath)]), 'presentation.pptx');
+    formDataSpoofed.append('eurekaScreenshot', new Blob([fs.readFileSync(fakeFilePath)]), 'fake_script.png');
+
+    const spoofedRes = await fetch(`${BASE_URL}/api/teams/register`, {
+      method: 'POST',
+      body: formDataSpoofed
+    });
+    const spoofedData = await spoofedRes.json();
+    if (fs.existsSync(fakeFilePath)) fs.unlinkSync(fakeFilePath);
+
+    assert(spoofedRes.status === 400 && spoofedData.message && spoofedData.message.includes('Security Rejection'), '19. Binary Header Signature Validation Rejection');
 
   } catch (err) {
     console.error('💥 Test Execution Exception:', err);

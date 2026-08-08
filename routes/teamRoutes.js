@@ -8,12 +8,13 @@ const {
 } = require('../controllers/teamController');
 
 const adminController = require('../controllers/adminController');
+const { registerLimiter, statusCheckLimiter } = require('../middleware/rateLimiter');
 
 // Registration submission
-router.post('/register', uploadMiddleware, registerTeam);
+router.post('/register', registerLimiter, uploadMiddleware, registerTeam);
 
 // Status check query
-router.get('/status', getTeamStatus);
+router.get('/status', statusCheckLimiter, getTeamStatus);
 
 // PPT template download
 router.get('/template', downloadPptTemplate);

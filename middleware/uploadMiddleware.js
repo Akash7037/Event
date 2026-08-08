@@ -89,6 +89,43 @@ const uploadTeamFiles = upload.fields([
   { name: 'eurekaScreenshot', maxCount: 1 }
 ]);
 
+/**
+ * Validate binary file magic signatures to prevent executable/script uploads renamed to .png or .pptx
+ */
+function validateMagicBytes(filePath, fieldname) {
+  try {
+    const buffer = Buffer.alloc(8);
+    const fd = fs.openSync(filePath, 'r');
+    fs.readSync(fd, buffer, 0, 8, 0);
+    fs.closeSync(fd);
+
+    if (fieldname === 'eurekaScreenshot') {
+      // PNG: 89 50 4E 47
+      const isPng = buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47;
+      // JPG/JPEG: FF D8 FF
+      const isJpg = buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF;
+      // PDF: %PDF (25 50 44 46)
+      const isPdf = buffer[0] === 0x25 && buffer[1] === 0x50 && buffer[2] === 0x44 && buffer[3] === 0x46;
+
+      return isPng || isJpg || isPdf;
+    }
+
+    if (fieldname === 'pptFile') {
+      // Office Open XML (.pptx) ZIP container: PK\x03\x04 (50 4B 03 04)
+      const isPptxZip = buffer[0] === 0x50 && buffer[1] === 0x4B && buffer[2] === 0x03 && buffer[3] === 0x04;
+      // Legacy PPT (Compound File Binary): D0 CF 11 E0 A1 B1 1A E1
+      const isLegacyPpt = buffer[0] === 0xD0 && buffer[1] === 0xCF && buffer[2] === 0x11 && buffer[3] === 0xE0;
+
+      return isPptxZip || isLegacyPpt;
+    }
+
+    return false;
+  } catch (err) {
+    console.error(`[Magic Byte Error] Failed reading ${filePath}:`, err.message);
+    return false;
+  }
+}
+
 // Wrapper middleware to handle size limits per field cleanly + optional Cloudinary CDN upload
 const uploadMiddleware = (req, res, next) => {
   uploadTeamFiles(req, res, async function (err) {
@@ -101,13 +138,27 @@ const uploadMiddleware = (req, res, next) => {
       return res.status(400).json({ success: false, message: err.message });
     }
 
-    // Secondary file size verification per specific field
+    // Secondary file size verification per specific field & binary magic signature check
     if (req.files) {
       if (req.files.eurekaScreenshot && req.files.eurekaScreenshot[0].size > 5 * 1024 * 1024) {
         return res.status(400).json({ success: false, message: 'Eureka Screenshot exceeds 5MB size limit!' });
       }
       if (req.files.pptFile && req.files.pptFile[0].size > 10 * 1024 * 1024) {
         return res.status(400).json({ success: false, message: 'Presentation PPT file exceeds 10MB size limit!' });
+      }
+
+      // Binary Header Signature Validation
+      for (const field of ['pptFile', 'eurekaScreenshot']) {
+        if (req.files[field] && req.files[field][0]) {
+          const file = req.files[field][0];
+          if (!validateMagicBytes(file.path, field)) {
+            fs.unlink(file.path, () => {});
+            return res.status(400).json({
+              success: false,
+              message: `Security Rejection: Binary header signature of uploaded file (${field}) does not match valid ${field === 'pptFile' ? '.ppt/.pptx' : '.png/.jpg/.pdf'} format!`
+            });
+          }
+        }
       }
 
       // Extract sanitized Team Name for Cloudinary public_id

@@ -21,9 +21,10 @@ const {
 } = require('../controllers/adminController');
 
 const { handleSseConnection } = require('../utils/sseHub');
+const { adminLoginLimiter } = require('../middleware/rateLimiter');
 
 // Public route: Admin Login & Public Status
-router.post('/login', loginAdmin);
+router.post('/login', adminLoginLimiter, loginAdmin);
 router.get('/registration-status', getRegistrationStatus);
 
 // Real-Time Server-Sent Events (SSE) Stream
