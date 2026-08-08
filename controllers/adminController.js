@@ -263,10 +263,29 @@ exports.approveTeam = async (req, res, next) => {
       };
 
       // Send to Student Leader
-      sendEmail(emailOptions).then(res => {
-        console.log(`[Approval Email] Sent to leader ${team.leader.email}:`, res.success);
-      }).catch(err => {
+      sendEmail(emailOptions).then(async (emailRes) => {
+        console.log(`[Approval Email] Sent to leader ${team.leader.email}:`, emailRes.success);
+        team.emailLogs = team.emailLogs || [];
+        team.emailLogs.push({
+          emailType: 'Approval Entry Pass QR',
+          recipient: team.leader.email,
+          status: emailRes.success ? 'Sent' : 'Failed',
+          provider: emailRes.provider || 'Direct',
+          error: emailRes.error || '',
+          sentAt: new Date()
+        });
+        if (getIsConnected()) await team.save();
+      }).catch(async (err) => {
         console.error(`[Approval Email Error] ${team.leader.email}:`, err.message);
+        team.emailLogs = team.emailLogs || [];
+        team.emailLogs.push({
+          emailType: 'Approval Entry Pass QR',
+          recipient: team.leader.email,
+          status: 'Failed',
+          error: err.message,
+          sentAt: new Date()
+        });
+        if (getIsConnected()) await team.save();
       });
 
       // Send Backup Copy to for12345freelancing@gmail.com
@@ -335,10 +354,29 @@ exports.rejectTeam = async (req, res, next) => {
         email: team.leader.email,
         subject: 'Registration Update - Startup Pitching Competition',
         message: `Hello ${team.leader.name},\n\nYour registration for team "${team.teamName}" in the Startup Pitching Competition has been rejected.\n\nReason:\n${reason.trim()}\n\nIf you have any questions, please contact the E-Cell team.`
-      }).then(res => {
-        console.log(`[Rejection Email] Sent to ${team.leader.email}:`, res.success);
-      }).catch(err => {
+      }).then(async (emailRes) => {
+        console.log(`[Rejection Email] Sent to ${team.leader.email}:`, emailRes.success);
+        team.emailLogs = team.emailLogs || [];
+        team.emailLogs.push({
+          emailType: 'Rejection Update',
+          recipient: team.leader.email,
+          status: emailRes.success ? 'Sent' : 'Failed',
+          provider: emailRes.provider || 'Direct',
+          error: emailRes.error || '',
+          sentAt: new Date()
+        });
+        if (getIsConnected()) await team.save();
+      }).catch(async (err) => {
         console.error(`[Rejection Email Error] ${team.leader.email}:`, err.message);
+        team.emailLogs = team.emailLogs || [];
+        team.emailLogs.push({
+          emailType: 'Rejection Update',
+          recipient: team.leader.email,
+          status: 'Failed',
+          error: err.message,
+          sentAt: new Date()
+        });
+        if (getIsConnected()) await team.save();
       });
     }
 

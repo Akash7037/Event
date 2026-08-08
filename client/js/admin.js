@@ -424,6 +424,16 @@ async function loadTeamsData() {
           </div>
         ` : '';
 
+        const lastLog = (team.emailLogs && team.emailLogs.length > 0) ? team.emailLogs[team.emailLogs.length - 1] : null;
+        let emailBadge = `<span style="font-size: 11px; color: var(--text-muted);"><i class="fa-solid fa-envelope"></i> None</span>`;
+        if (lastLog) {
+          if (lastLog.status === 'Sent') {
+            emailBadge = `<span class="badge" style="font-size: 11px; padding: 2px 8px; background: rgba(16, 185, 129, 0.15); border: 1px solid var(--accent-emerald); color: var(--accent-emerald);" title="Sent via ${lastLog.provider || 'Direct'} at ${new Date(lastLog.sentAt).toLocaleTimeString()}"><i class="fa-solid fa-circle-check"></i> Sent (${lastLog.provider || 'Direct'})</span>`;
+          } else if (lastLog.status === 'Failed') {
+            emailBadge = `<span class="badge" style="font-size: 11px; padding: 2px 8px; background: rgba(239, 68, 68, 0.15); border: 1px solid var(--accent-rose); color: var(--accent-rose);" title="Error: ${lastLog.error || 'Delivery Error'}"><i class="fa-solid fa-circle-xmark"></i> Failed</span>`;
+          }
+        }
+
         return `
           <tr>
             <td style="font-weight: 700; color: var(--text-primary);">${team.teamName}</td>
@@ -435,6 +445,7 @@ async function loadTeamsData() {
             <td>${team.leader.department}<br><span style="font-size: 12px; color: var(--accent-terracotta);">${team.leader.year}</span></td>
             <td><span style="color: var(--accent-terracotta); font-weight: 600;">${team.innovationDomain}</span></td>
             <td style="font-size: 13px; color: var(--text-secondary);">${dateStr}</td>
+            <td>${emailBadge}</td>
             <td>
               <span class="badge ${badgeClass}">
                 <i class="fa-solid ${statusIcon}"></i> ${team.status}
@@ -454,7 +465,7 @@ async function loadTeamsData() {
     console.error('Failed to load teams:', error);
     tbody.innerHTML = `
       <tr>
-        <td colspan="7" style="text-align: center; color: var(--accent-rose); padding: 20px;">
+        <td colspan="9" style="text-align: center; color: var(--accent-rose); padding: 20px;">
           Error loading teams dataset.
         </td>
       </tr>
@@ -606,9 +617,26 @@ async function openTeamDetailsModal(teamId) {
             ` : ''}
             <button type="button" class="btn-secondary" style="padding: 6px 12px; font-size: 12px; border-color: var(--accent-rose); color: var(--accent-rose);" onclick="triggerDeleteTeam('${team._id}', '${encodeURIComponent(team.teamName)}')">
               <i class="fa-solid fa-trash-can"></i> Delete
-            </button>
-          </div>
         </div>
+      </div>
+
+      <!-- Email Delivery History Logs -->
+      <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 14px 16px; border-radius: var(--radius-md); margin-bottom: 16px;">
+        <h5 style="color: var(--accent-cyan); margin-bottom: 10px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-paper-plane"></i> Email Dispatch & Delivery Logs (${(team.emailLogs || []).length})
+        </h5>
+        ${(team.emailLogs && team.emailLogs.length > 0) ? team.emailLogs.map(log => `
+          <div style="font-size: 12px; display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px dashed rgba(255,255,255,0.08);">
+            <span>
+              <i class="fa-solid ${log.status === 'Sent' ? 'fa-circle-check' : 'fa-circle-xmark'}" style="color: ${log.status === 'Sent' ? 'var(--accent-emerald)' : 'var(--accent-rose)'}; margin-right: 6px;"></i>
+              <strong>${log.emailType || 'Email'}</strong> to <span style="color: var(--text-primary);">${log.recipient}</span>
+            </span>
+            <span style="color: var(--text-muted); font-size: 11px;">
+              ${log.status === 'Sent' ? `<span style="color: var(--accent-emerald);">Sent (${log.provider || 'Direct'})</span>` : `<span style="color: var(--accent-rose);">Failed: ${log.error || 'Error'}</span>`}
+              • ${new Date(log.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          </div>
+        `).join('') : '<div style="font-size: 12px; color: var(--text-muted);">No email dispatch logs recorded yet for this team.</div>'}
       </div>
 
       ${team.status === 'Rejected' && team.rejectionReason ? `

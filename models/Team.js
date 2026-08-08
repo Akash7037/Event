@@ -104,8 +104,23 @@ const teamSchema = new mongoose.Schema({
   checkedInAt: {
     type: Date,
     default: null
-  }
+  },
+  emailLogs: [{
+    emailType: { type: String, default: 'Email' },
+    recipient: { type: String },
+    status: { type: String, enum: ['Sent', 'Failed', 'Pending'], default: 'Pending' },
+    provider: { type: String, default: 'Direct' },
+    error: { type: String, default: '' },
+    sentAt: { type: Date, default: Date.now }
+  }]
 });
+
+// Compound and Single MongoDB Indexes for Performance Tuning
+teamSchema.index({ 'leader.registerNumber': 1 });
+teamSchema.index({ 'leader.email': 1 });
+teamSchema.index({ status: 1, submittedAt: -1 });
+teamSchema.index({ checkedIn: 1 });
+teamSchema.index({ teamName: 1 });
 
 // Helper virtual for member count
 teamSchema.virtual('totalMembers').get(function () {

@@ -181,7 +181,7 @@ async function runComprehensiveAudit() {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const approveData = await approveRes.json();
-      assert(approveRes.status === 200 && approveData.data.status === 'Approved', '12. Admin Team Approval & Status Update');
+      assert(approveRes.status === 200 && approveData.data.status === 'Approved' && approveData.data.emailLogs !== undefined, '12. Admin Team Approval & Email Logs Tracking');
     }
 
     // TEST 13: QR Pass Entry Scanner Verification (First Scan - Approved Entry)

@@ -202,10 +202,29 @@ exports.registerTeam = async (req, res, next) => {
         email: newTeam.leader.email,
         subject: `Registration Received - Team "${newTeam.teamName}" | Startup Pitching Competition 2026`,
         message: `Dear ${newTeam.leader.name},\n\nThank you for registering your team "${newTeam.teamName}" (${newTeam.startupName || newTeam.teamName}) for the Intra-College Startup Pitching Competition 2026.\n\nYour application has been received successfully and is currently Pending Verification by the E-Cell panel.\n\nOnce your submission is reviewed and approved by the admin team, you will receive an official Approval Email containing your Auditorium Entry QR Pass.`
-      }).then(res => {
-        console.log(`[Student Confirmation Email] Sent to ${newTeam.leader.email}:`, res.success);
-      }).catch(err => {
+      }).then(async (emailRes) => {
+        console.log(`[Student Confirmation Email] Sent to ${newTeam.leader.email}:`, emailRes.success);
+        newTeam.emailLogs = newTeam.emailLogs || [];
+        newTeam.emailLogs.push({
+          emailType: 'Registration Receipt',
+          recipient: newTeam.leader.email,
+          status: emailRes.success ? 'Sent' : 'Failed',
+          provider: emailRes.provider || 'Direct',
+          error: emailRes.error || '',
+          sentAt: new Date()
+        });
+        if (getIsConnected()) await newTeam.save();
+      }).catch(async (err) => {
         console.error(`[Student Confirmation Email Error]:`, err.message);
+        newTeam.emailLogs = newTeam.emailLogs || [];
+        newTeam.emailLogs.push({
+          emailType: 'Registration Receipt',
+          recipient: newTeam.leader.email,
+          status: 'Failed',
+          error: err.message,
+          sentAt: new Date()
+        });
+        if (getIsConnected()) await newTeam.save();
       });
     }
 
