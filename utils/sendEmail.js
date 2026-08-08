@@ -85,11 +85,17 @@ const sendEmail = async (options) => {
 
     const defaultHtml = `
       <div style="font-family: Arial, sans-serif; background-color: #faf9f5; color: #141413; padding: 24px; border-radius: 12px; border: 1px solid #e8e6dc;">
-        <h2 style="color: #d97757; border-bottom: 2px solid #d97757; padding-bottom: 8px; margin-top: 0;">Startup Pitching Competition 2026</h2>
+        <div style="display: flex; align-items: center; gap: 12px; border-bottom: 2px solid #d97757; padding-bottom: 12px; margin-bottom: 16px;">
+          <img src="https://res.cloudinary.com/ro8vl2iq/image/upload/v1786169901/pitch_competition/branding/ecell_logo.png" alt="E-Cell Logo" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover;" />
+          <div>
+            <h2 style="color: #d97757; margin: 0; font-size: 20px;">Startup Pitching Competition 2026</h2>
+            <span style="font-size: 12px; color: #64748b;">Entrepreneurship Development Cell (E-Cell • VSBCETC)</span>
+          </div>
+        </div>
         <p style="font-size: 15px; line-height: 1.6; color: #141413;">${(options.message || '').replace(/\n/g, '<br>')}</p>
         ${qrImageHtml}
         <hr style="border: 0; border-top: 1px solid #e8e6dc; margin: 20px 0;">
-        <p style="font-size: 12px; color: #b0aea5;">Organized by Entrepreneurship Development Cell (E-Cell)</p>
+        <p style="font-size: 12px; color: #b0aea5;">Organized by Entrepreneurship Development Cell (E-Cell • VSBCETC)</p>
       </div>
     `;
 
