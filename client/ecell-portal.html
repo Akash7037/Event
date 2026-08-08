@@ -25,7 +25,7 @@
   <!-- Admin Navbar -->
   <header class="navbar">
     <div class="container nav-container">
-      <div>
+      <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;" class="brand-mobile-wrapper">
         <a href="ecell-portal" class="brand">
           <div class="brand-logo-wrapper">
             <img src="assets/ecell_logo.png" alt="E-Cell VSBCETC Logo" class="brand-logo-img">
@@ -35,6 +35,9 @@
             <span>Startup Pitching 2026</span>
           </div>
         </a>
+        <button type="button" class="mobile-theme-header-btn" id="mobile-admin-theme-btn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+          <i class="fa-solid fa-moon"></i>
+        </button>
       </div>
       <div class="nav-links" id="admin-nav-actions" style="display: none;">
         <span style="font-size: 14px; color: var(--text-secondary);" id="admin-user-display">
@@ -499,27 +502,22 @@
     </div>
   </div>
 
-  <!-- Floating Mobile Bottom Navigation Bar -->
-  <div class="mobile-bottom-nav" id="admin-mobile-nav">
-    <button class="mobile-nav-btn admin-auth-only" onclick="openQrScannerModal()" style="color: var(--accent-emerald);">
+  <!-- Sleek Icon-Only Mobile Floating Bottom Navigation Bar (< 768px) -->
+  <div class="admin-mobile-icon-bar" id="admin-mobile-bottom-bar">
+    <button type="button" class="admin-icon-btn admin-auth-only" onclick="openQrScannerModal()" title="Scan Auditorium Entry Pass QR">
       <i class="fa-solid fa-qrcode" style="color: var(--accent-emerald);"></i>
-      <span>Scan QR</span>
     </button>
-    <a href="index.html" class="mobile-nav-btn">
-      <i class="fa-solid fa-house"></i>
-      <span>Student Portal</span>
-    </a>
-    <button class="mobile-nav-btn admin-auth-only" onclick="openEditCredentialsModal()">
+    <button type="button" class="admin-icon-btn admin-auth-only" onclick="openEditCredentialsModal()" title="Edit Admin Credentials">
       <i class="fa-solid fa-user-gear"></i>
-      <span>Creds</span>
     </button>
-    <button class="mobile-nav-btn" onclick="toggleTheme()">
-      <i class="fa-solid fa-moon"></i>
-      <span>Theme</span>
+    <button type="button" class="admin-icon-btn admin-auth-only" onclick="triggerSendAllBackups()" title="Send All Backup Emails">
+      <i class="fa-solid fa-envelope-open-text" style="color: var(--accent-terracotta);"></i>
     </button>
-    <button class="mobile-nav-btn admin-auth-only" onclick="handleAdminLogout()">
+    <a href="index.html" class="admin-icon-btn" title="Student Portal">
+      <i class="fa-solid fa-house"></i>
+    </a>
+    <button type="button" class="admin-icon-btn danger admin-auth-only" onclick="handleAdminLogout()" title="Logout of Admin Portal">
       <i class="fa-solid fa-right-from-bracket"></i>
-      <span>Logout</span>
     </button>
   </div>
 
