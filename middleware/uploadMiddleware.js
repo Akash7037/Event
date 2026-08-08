@@ -43,9 +43,11 @@ const storage = multer.diskStorage({
     }
   },
   filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const rawName = (req.body && (req.body.teamName || req.body.startupName)) ? (req.body.teamName || req.body.startupName) : file.fieldname;
+    const cleanName = rawName.trim().replace(/[^a-zA-Z0-9_-]/g, '_');
+    const uniqueSuffix = Date.now();
     const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+    cb(null, `${cleanName}_${uniqueSuffix}${ext}`);
   }
 });
 
@@ -108,6 +110,10 @@ const uploadMiddleware = (req, res, next) => {
         return res.status(400).json({ success: false, message: 'Presentation PPT file exceeds 10MB size limit!' });
       }
 
+      // Extract sanitized Team Name for Cloudinary public_id
+      const rawTeamName = (req.body && (req.body.teamName || req.body.startupName)) ? (req.body.teamName || req.body.startupName) : 'team';
+      const sanitizedTeamName = rawTeamName.trim().replace(/[^a-zA-Z0-9_-]/g, '_');
+
       // If Cloudinary credentials are set in environment variables, upload to Cloudinary CDN in parallel
       if (ensureCloudinaryConfigured()) {
         try {
@@ -115,9 +121,12 @@ const uploadMiddleware = (req, res, next) => {
 
           if (req.files.eurekaScreenshot && req.files.eurekaScreenshot[0]) {
             const file = req.files.eurekaScreenshot[0];
+            const screenshotPublicId = `${sanitizedTeamName}_Proof_${Date.now()}`;
+
             uploadPromises.push(
               cloudinary.uploader.upload(file.path, {
                 folder: 'pitch_competition/screenshots',
+                public_id: screenshotPublicId,
                 resource_type: 'auto'
               }).then(result => {
                 file.cloudinaryUrl = result.secure_url;
@@ -128,10 +137,14 @@ const uploadMiddleware = (req, res, next) => {
 
           if (req.files.pptFile && req.files.pptFile[0]) {
             const file = req.files.pptFile[0];
+            const ext = path.extname(file.originalname).toLowerCase();
+            const pptPublicId = `${sanitizedTeamName}_Pitch_${Date.now()}${ext}`;
+
             uploadPromises.push(
               cloudinary.uploader.upload(file.path, {
                 folder: 'pitch_competition/ppt',
-                resource_type: 'raw' // 'raw' ensures .ppt/.pptx extension & binary structure are preserved
+                public_id: pptPublicId,
+                resource_type: 'raw' // 'raw' preserves .ppt/.pptx extension & binary structure
               }).then(result => {
                 file.cloudinaryUrl = result.secure_url;
                 fs.unlink(file.path, () => {});

@@ -67,12 +67,17 @@ async function runComprehensiveAudit() {
     const statsData = await statsRes.json();
     assert(statsRes.status === 200 && statsData.success && statsData.data.total !== undefined, '5. Admin Dashboard Stats Query');
 
-    // TEST 6: PPT Template Download
-    const templateRes = await fetch(`${BASE_URL}/api/teams/template`);
-    assert(templateRes.status === 200, '6. Pitch Deck Template File Download');
+    // TEST 6: Real-Time SSE Event Stream Endpoint Handshake Check
+    const sseRes = await fetch(`${BASE_URL}/api/admin/events?token=${token}`);
+    assert(sseRes.status === 200 && sseRes.headers.get('content-type').includes('text/event-stream'), '6. Real-Time SSE Stream Endpoint Verification');
 
-    // TEST 7: Registration Submission (1-Member Team Submission)
+    // TEST 7: Pitch Deck Template File Download
+    const templateRes = await fetch(`${BASE_URL}/api/teams/template`);
+    assert(templateRes.status === 200, '7. Pitch Deck Template File Download');
+
+    // TEST 8: Registration Submission (1-Member Team Submission)
     const testRegNo1 = 'TESTREG_' + Date.now();
+    const testEmail1 = 'alice_' + Date.now() + '@example.com';
     const formData1 = new FormData();
     formData1.append('teamName', 'Alpha Innovators');
     formData1.append('startupName', 'Alpha Solar System');
@@ -80,7 +85,7 @@ async function runComprehensiveAudit() {
     formData1.append('leaderRegNo', testRegNo1);
     formData1.append('leaderDept', 'Computer Science & Engineering');
     formData1.append('leaderYear', '3rd Year');
-    formData1.append('leaderEmail', 'alice.test@example.com');
+    formData1.append('leaderEmail', testEmail1);
     formData1.append('leaderPhone', '9876543210');
     formData1.append('problemStatement', 'Clean energy grid management in rural areas.');
     formData1.append('abstract', 'Innovative AI-powered solar microgrid distributor for villages.');
@@ -277,7 +282,7 @@ async function runComprehensiveAudit() {
   }
 
   console.log('====================================================');
-  console.log(`📊 FINAL AUDIT SCORE: ${passed} Passed / ${passed + failed} Executed (${Math.round((passed/(passed+failed))*100)}%)`);
+  console.log(`📊 FINAL AUDIT SCORE: ${passed} Passed / ${passed + failed} Executed (${Math.round((passed / (passed + failed)) * 100)}%)`);
   console.log('====================================================');
 
   process.exit(failed > 0 ? 1 : 0);

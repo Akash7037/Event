@@ -20,9 +20,14 @@ const {
   clearAllTeams
 } = require('../controllers/adminController');
 
-// Public route: Admin Login
+const { handleSseConnection } = require('../utils/sseHub');
+
+// Public route: Admin Login & Public Status
 router.post('/login', loginAdmin);
 router.get('/registration-status', getRegistrationStatus);
+
+// Real-Time Server-Sent Events (SSE) Stream
+router.get('/events', handleSseConnection);
 
 // Private routes (JWT Required)
 router.post('/toggle-registration', protectAdmin, toggleRegistration);

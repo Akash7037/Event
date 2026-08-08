@@ -30,9 +30,159 @@ function updateThemeToggleUI(theme) {
   }
 }
 
+// Form Auto-Save & Draft Recovery System (localStorage)
+const DRAFT_KEY = 'ecell_pitch_registration_draft_v1';
+let draftSaveTimeout = null;
+
+function saveFormDraft() {
+  const form = document.getElementById('registration-form');
+  if (!form) return;
+
+  const m2Sec = document.getElementById('member2-section');
+  const m3Sec = document.getElementById('member3-section');
+
+  const draftData = {
+    teamName: document.getElementById('teamName')?.value || '',
+    leaderName: document.getElementById('leaderName')?.value || '',
+    leaderRegNo: document.getElementById('leaderRegNo')?.value || '',
+    leaderDept: document.getElementById('leaderDept')?.value || '',
+    leaderYear: document.getElementById('leaderYear')?.value || '',
+    leaderEmail: document.getElementById('leaderEmail')?.value || '',
+    leaderPhone: document.getElementById('leaderPhone')?.value || '',
+
+    member2Visible: m2Sec ? m2Sec.style.display !== 'none' : false,
+    member2Name: document.getElementById('member2Name')?.value || '',
+    member2RegNo: document.getElementById('member2RegNo')?.value || '',
+    member2Dept: document.getElementById('member2Dept')?.value || '',
+    member2Year: document.getElementById('member2Year')?.value || '',
+
+    member3Visible: m3Sec ? m3Sec.style.display !== 'none' : false,
+    member3Name: document.getElementById('member3Name')?.value || '',
+    member3RegNo: document.getElementById('member3RegNo')?.value || '',
+    member3Dept: document.getElementById('member3Dept')?.value || '',
+    member3Year: document.getElementById('member3Year')?.value || '',
+
+    startupName: document.getElementById('startupName')?.value || '',
+    innovationDomain: document.getElementById('innovationDomain')?.value || '',
+    problemStatement: document.getElementById('problemStatement')?.value || '',
+    abstract: document.getElementById('abstract')?.value || '',
+    declarationConfirmed: document.getElementById('declarationConfirmed')?.checked || false,
+    savedAt: new Date().toISOString()
+  };
+
+  localStorage.setItem(DRAFT_KEY, JSON.stringify(draftData));
+}
+
+function debouncedSaveDraft() {
+  if (draftSaveTimeout) clearTimeout(draftSaveTimeout);
+  draftSaveTimeout = setTimeout(saveFormDraft, 400);
+}
+
+function restoreFormDraft() {
+  const saved = localStorage.getItem(DRAFT_KEY);
+  if (!saved) return;
+
+  try {
+    const draft = JSON.parse(saved);
+    if (!draft) return;
+
+    if (draft.teamName) document.getElementById('teamName').value = draft.teamName;
+    if (draft.leaderName) document.getElementById('leaderName').value = draft.leaderName;
+    if (draft.leaderRegNo) document.getElementById('leaderRegNo').value = draft.leaderRegNo;
+    if (draft.leaderDept) document.getElementById('leaderDept').value = draft.leaderDept;
+    if (draft.leaderYear) document.getElementById('leaderYear').value = draft.leaderYear;
+    if (draft.leaderEmail) document.getElementById('leaderEmail').value = draft.leaderEmail;
+    if (draft.leaderPhone) document.getElementById('leaderPhone').value = draft.leaderPhone;
+
+    if (draft.member2Visible) {
+      toggleMember(2, true);
+      if (draft.member2Name) document.getElementById('member2Name').value = draft.member2Name;
+      if (draft.member2RegNo) document.getElementById('member2RegNo').value = draft.member2RegNo;
+      if (draft.member2Dept) document.getElementById('member2Dept').value = draft.member2Dept;
+      if (draft.member2Year) document.getElementById('member2Year').value = draft.member2Year;
+    }
+
+    if (draft.member3Visible) {
+      toggleMember(3, true);
+      if (draft.member3Name) document.getElementById('member3Name').value = draft.member3Name;
+      if (draft.member3RegNo) document.getElementById('member3RegNo').value = draft.member3RegNo;
+      if (draft.member3Dept) document.getElementById('member3Dept').value = draft.member3Dept;
+      if (draft.member3Year) document.getElementById('member3Year').value = draft.member3Year;
+    }
+
+    if (draft.startupName) document.getElementById('startupName').value = draft.startupName;
+    if (draft.innovationDomain) document.getElementById('innovationDomain').value = draft.innovationDomain;
+    if (draft.problemStatement) document.getElementById('problemStatement').value = draft.problemStatement;
+    if (draft.abstract) {
+      document.getElementById('abstract').value = draft.abstract;
+      handleAbstractWordCount();
+    }
+    if (draft.declarationConfirmed) document.getElementById('declarationConfirmed').checked = draft.declarationConfirmed;
+
+    showDraftBanner(draft.savedAt);
+  } catch (err) {
+    console.warn('Failed to parse saved draft:', err);
+  }
+}
+
+function showDraftBanner(savedAtStr) {
+  const form = document.getElementById('registration-form');
+  if (!form || document.getElementById('draft-banner')) return;
+
+  const dateFormatted = savedAtStr ? new Date(savedAtStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'earlier session';
+
+  const banner = document.createElement('div');
+  banner.id = 'draft-banner';
+  banner.style.cssText = `
+    background: rgba(14, 165, 233, 0.12);
+    border: 1px solid var(--accent-cyan);
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  `;
+  banner.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--text-primary);">
+      <i class="fa-solid fa-floppy-disk" style="color: var(--accent-cyan); font-size: 18px;"></i>
+      <span>Draft auto-restored from <strong>${dateFormatted}</strong>.</span>
+    </div>
+    <button type="button" class="btn-secondary" style="padding: 5px 12px; font-size: 12px; border-color: var(--accent-rose); color: var(--accent-rose);" onclick="clearFormDraft(true)">
+      <i class="fa-solid fa-trash"></i> Discard Draft
+    </button>
+  `;
+
+  form.parentNode.insertBefore(banner, form);
+  showToast('Draft restored from your last session!', 'info');
+}
+
+function clearFormDraft(userTriggered = false) {
+  localStorage.removeItem(DRAFT_KEY);
+  const banner = document.getElementById('draft-banner');
+  if (banner) banner.remove();
+
+  if (userTriggered) {
+    const form = document.getElementById('registration-form');
+    if (form) form.reset();
+    toggleMember(2, false);
+    toggleMember(3, false);
+    handleAbstractWordCount();
+    showToast('Draft discarded and form reset.', 'info');
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   checkRegistrationIsOpen();
+  restoreFormDraft();
+
+  const regForm = document.getElementById('registration-form');
+  if (regForm) {
+    regForm.addEventListener('input', debouncedSaveDraft);
+    regForm.addEventListener('change', debouncedSaveDraft);
+  }
 });
 
 async function checkRegistrationIsOpen() {
@@ -346,6 +496,7 @@ async function handleRegistrationSubmit(event) {
       document.getElementById('screenshot-preview').innerHTML = '';
       toggleMember(2, false);
       handleAbstractWordCount();
+      clearFormDraft();
       showToast('Registration submitted successfully!', 'success');
     } else {
       showToast(result.message || 'Submission failed. Please check form fields.', 'error');
@@ -588,7 +739,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Eureka Registration Guide Modal & View Switching (Globally Exposed)
-window.openEurekaGuideModal = function() {
+window.openEurekaGuideModal = function () {
   const modal = document.getElementById('eureka-guide-modal');
   if (modal) {
     modal.classList.add('active');
@@ -596,7 +747,7 @@ window.openEurekaGuideModal = function() {
   }
 };
 
-window.closeEurekaGuideModal = function() {
+window.closeEurekaGuideModal = function () {
   const modal = document.getElementById('eureka-guide-modal');
   if (modal) {
     modal.classList.remove('active');
@@ -604,7 +755,7 @@ window.closeEurekaGuideModal = function() {
   }
 };
 
-window.switchGuideTab = function(type) {
+window.switchGuideTab = function (type) {
   const mobileImg = document.getElementById('modal-guide-img-mobile');
   const desktopImg = document.getElementById('modal-guide-img-desktop');
   const mobileBtn = document.getElementById('modal-tab-mobile-btn');

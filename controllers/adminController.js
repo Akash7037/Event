@@ -281,6 +281,13 @@ exports.approveTeam = async (req, res, next) => {
       });
     }
 
+    // Broadcast SSE Event
+    const { broadcastSseEvent } = require('../utils/sseHub');
+    broadcastSseEvent('team_approved', {
+      teamId: team._id,
+      teamName: team.teamName
+    });
+
     // Instant HTTP response back to Admin UI
     res.status(200).json({
       success: true,
@@ -334,6 +341,13 @@ exports.rejectTeam = async (req, res, next) => {
         console.error(`[Rejection Email Error] ${team.leader.email}:`, err.message);
       });
     }
+
+    // Broadcast SSE Event
+    const { broadcastSseEvent } = require('../utils/sseHub');
+    broadcastSseEvent('team_rejected', {
+      teamId: team._id,
+      teamName: team.teamName
+    });
 
     // Instant HTTP response back to Admin UI
     res.status(200).json({
@@ -674,6 +688,14 @@ exports.verifyAuditoriumTicket = async (req, res, next) => {
         }
       });
     }
+
+    // Broadcast SSE Event for live door check-in
+    const { broadcastSseEvent } = require('../utils/sseHub');
+    broadcastSseEvent('ticket_verified', {
+      teamId: team._id,
+      teamName: team.teamName,
+      leaderName: team.leader ? team.leader.name : 'Leader'
+    });
 
     return res.status(200).json({
       success: true,

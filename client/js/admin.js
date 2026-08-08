@@ -115,6 +115,89 @@ function showDashboardView() {
 
   loadAdminStats();
   loadTeamsData();
+  initAdminSseConnection();
+}
+
+// Real-Time Server-Sent Events (SSE) Manager
+let adminEventSource = null;
+
+function initAdminSseConnection() {
+  if (!currentAdminToken) return;
+  if (adminEventSource) {
+    adminEventSource.close();
+    adminEventSource = null;
+  }
+
+  try {
+    const sseUrl = `/api/admin/events?token=${encodeURIComponent(currentAdminToken)}`;
+    adminEventSource = new EventSource(sseUrl);
+
+    adminEventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'connected') {
+          console.log('[SSE Admin] Real-time stream connected:', data.message);
+          return;
+        }
+
+        console.log('[SSE Admin] Live event received:', data.type, data.payload);
+
+        // Visual toast notifications & stat counter pulse animations
+        if (data.type === 'team_registered') {
+          showToast(`⚡ Live Update: Team "${data.payload.teamName}" registered!`, 'info');
+          pulseStatCard('stat-total');
+          pulseStatCard('stat-pending');
+        } else if (data.type === 'ticket_verified') {
+          showToast(`⚡ Live Door Scan: Team "${data.payload.teamName}" checked-in!`, 'success');
+          pulseStatCard('stat-checkedin');
+        } else if (data.type === 'team_approved') {
+          showToast(`⚡ Team "${data.payload.teamName}" approved!`, 'success');
+          pulseStatCard('stat-approved');
+        } else if (data.type === 'team_rejected') {
+          showToast(`⚡ Team "${data.payload.teamName}" rejected.`, 'warning');
+          pulseStatCard('stat-rejected');
+        } else if (data.type === 'registration_toggled') {
+          showToast(`⚡ Global registration status updated!`, 'info');
+          fetchRegistrationStatus();
+        } else if (data.type === 'team_updated') {
+          showToast(`⚡ Submission updated for team "${data.payload.teamName}".`, 'info');
+        }
+
+        loadAdminStats();
+        loadTeamsData();
+
+      } catch (err) {
+        console.warn('[SSE Admin Parse Warning]', err.message);
+      }
+    };
+
+    adminEventSource.onerror = (err) => {
+      console.warn('[SSE Admin Stream Warning] Connection lost. Auto-reconnecting...', err);
+    };
+
+  } catch (err) {
+    console.error('SSE initialization error:', err);
+  }
+}
+
+function pulseStatCard(statId) {
+  const el = document.getElementById(statId);
+  if (!el) return;
+  const card = el.closest('.stat-card');
+  if (card) {
+    card.classList.remove('stat-pulse');
+    void card.offsetWidth; // Force reflow
+    card.classList.add('stat-pulse');
+    setTimeout(() => card.classList.remove('stat-pulse'), 1000);
+  }
+}
+
+function closeAdminSseConnection() {
+  if (adminEventSource) {
+    adminEventSource.close();
+    adminEventSource = null;
+    console.log('[SSE Admin] Stream connection closed.');
+  }
 }
 
 // Handle Admin Login
@@ -163,6 +246,7 @@ async function handleAdminLogin(event) {
 
 // Handle Admin Logout
 function handleAdminLogout() {
+  closeAdminSseConnection();
   currentAdminToken = '';
   localStorage.removeItem('adminToken');
   localStorage.removeItem('adminUser');
@@ -457,10 +541,13 @@ async function openTeamDetailsModal(teamId) {
       <div style="background: rgba(6, 182, 212, 0.05); border: 1px solid rgba(6, 182, 212, 0.3); padding: 20px; border-radius: var(--radius-md); margin-bottom: 16px;">
         <h4 style="color: var(--accent-cyan); margin-bottom: 12px;"><i class="fa-solid fa-folder-open"></i> Submissions & Eureka Verification</h4>
         <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <button type="button" class="btn-primary" style="padding: 8px 16px; font-size: 13px; background: linear-gradient(135deg, #f59e0b, #d97706); border-color: transparent;" onclick="openMediaPreview('${pptUrl}', 'Pitch Deck - ${encodeURIComponent(team.teamName)}', 'ppt')">
+            <i class="fa-solid fa-file-powerpoint"></i> Preview PPT Deck
+          </button>
           <a href="${pptUrl}" target="_blank" download class="btn-secondary" style="text-decoration: none;">
-            <i class="fa-solid fa-file-powerpoint" style="color: var(--accent-amber);"></i> Download Presentation PPT
+            <i class="fa-solid fa-download"></i> Download PPT
           </a>
-          <button type="button" class="btn-primary" style="padding: 8px 16px; font-size: 13px;" onclick="openImageLightbox('${screenshotUrl}', 'Eureka Screenshot - ${encodeURIComponent(team.teamName)}')">
+          <button type="button" class="btn-primary" style="padding: 8px 16px; font-size: 13px;" onclick="openMediaPreview('${screenshotUrl}', 'Eureka Screenshot - ${encodeURIComponent(team.teamName)}', 'image')">
             <i class="fa-solid fa-expand"></i> Preview Screenshot Lightbox
           </button>
           <a href="${screenshotUrl}" target="_blank" class="btn-secondary" style="text-decoration: none; border-color: var(--accent-cyan);">
@@ -502,6 +589,91 @@ async function openTeamDetailsModal(teamId) {
 function closeTeamDetailsModal() {
   document.getElementById('team-details-modal').classList.remove('active');
   selectedTeamForAction = null;
+}
+
+// In-Browser Media & Document Previewer Lightbox
+function openMediaPreview(fileUrl, titleStr, overrideType = null) {
+  const modal = document.getElementById('doc-preview-modal');
+  const titleEl = document.getElementById('doc-preview-title');
+  const downloadBtn = document.getElementById('doc-preview-download-btn');
+  const bodyEl = document.getElementById('doc-preview-body');
+
+  if (!modal || !bodyEl) return;
+
+  const decodedTitle = decodeURIComponent(titleStr || 'Document Preview');
+  titleEl.innerHTML = `<i class="fa-solid fa-eye"></i> ${decodedTitle}`;
+  downloadBtn.href = fileUrl;
+
+  const urlLower = (fileUrl || '').toLowerCase();
+  let type = overrideType;
+
+  if (!type) {
+    if (urlLower.endsWith('.png') || urlLower.endsWith('.jpg') || urlLower.endsWith('.jpeg') || urlLower.endsWith('.webp')) {
+      type = 'image';
+    } else if (urlLower.endsWith('.pdf')) {
+      type = 'pdf';
+    } else if (urlLower.endsWith('.ppt') || urlLower.endsWith('.pptx')) {
+      type = 'ppt';
+    } else {
+      type = 'unknown';
+    }
+  }
+
+  bodyEl.innerHTML = '';
+
+  if (type === 'image') {
+    bodyEl.innerHTML = `
+      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
+        <img src="${fileUrl}" alt="Preview" style="max-width: 100%; max-height: 65vh; border-radius: 8px; box-shadow: 0 12px 36px rgba(0,0,0,0.8); object-fit: contain;">
+      </div>
+    `;
+  } else if (type === 'pdf') {
+    bodyEl.innerHTML = `
+      <iframe src="${fileUrl}" style="width: 100%; height: 65vh; border: none; border-radius: 8px; background: #ffffff;"></iframe>
+    `;
+  } else if (type === 'ppt') {
+    const fullHttpUrl = fileUrl.startsWith('http') ? fileUrl : `${window.location.origin}${fileUrl}`;
+    bodyEl.innerHTML = `
+      <div style="width: 100%; text-align: center;">
+        <div style="margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">
+          <i class="fa-solid fa-file-powerpoint" style="color: var(--accent-amber);"></i> Embedded Pitch Deck Viewer
+        </div>
+        <iframe src="https://docs.google.com/viewer?url=${encodeURIComponent(fullHttpUrl)}&embedded=true" style="width: 100%; height: 60vh; border: none; border-radius: 8px; background: #ffffff;"></iframe>
+        <div style="margin-top: 10px; font-size: 12px; color: var(--text-muted);">
+          Note: Local development PPT previews fallback to <a href="${fileUrl}" download style="color: var(--accent-cyan);">Direct Download</a> if Google Docs cannot access localhost.
+        </div>
+      </div>
+    `;
+  } else {
+    bodyEl.innerHTML = `
+      <div style="text-align: center; padding: 30px;">
+        <i class="fa-solid fa-file-lines" style="font-size: 48px; color: var(--accent-cyan); margin-bottom: 16px;"></i>
+        <p style="font-size: 15px; color: var(--text-primary); margin-bottom: 16px;">Preview unavailable for this file format.</p>
+        <a href="${fileUrl}" download class="btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-download"></i> Download File
+        </a>
+      </div>
+    `;
+  }
+
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeMediaPreview() {
+  const modal = document.getElementById('doc-preview-modal');
+  if (modal) {
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+}
+
+function openImageLightbox(imageUrl, title) {
+  openMediaPreview(imageUrl, title, 'image');
+}
+
+function closeImageLightbox() {
+  closeMediaPreview();
 }
 
 // Backup Email Dispatch Functions

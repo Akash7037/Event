@@ -209,6 +209,15 @@ exports.registerTeam = async (req, res, next) => {
       });
     }
 
+    // Broadcast real-time SSE event to all connected Admin dashboards
+    const { broadcastSseEvent } = require('../utils/sseHub');
+    broadcastSseEvent('team_registered', {
+      teamId: newTeam._id,
+      teamName: newTeam.teamName,
+      leaderName: newTeam.leader.name,
+      department: newTeam.leader.department
+    });
+
     res.status(201).json({
       success: true,
       message: 'Registration submitted successfully! Your application status is Pending Verification.',

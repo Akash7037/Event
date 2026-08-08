@@ -468,15 +468,28 @@
     </div>
   </div>
 
-  <!-- IMAGE & FILE LIGHTBOX PREVIEW MODAL -->
-  <div class="lightbox-modal" id="image-lightbox-modal" onclick="closeImageLightbox(event)">
-    <div class="lightbox-content-box" onclick="event.stopPropagation()">
-      <div class="lightbox-header">
-        <h4 style="font-size: 16px; color: #ffffff;" id="lightbox-title">Document Preview</h4>
-        <button class="file-remove" onclick="closeImageLightbox()" style="font-size: 20px;">&times;</button>
+  <!-- IN-BROWSER DOCUMENT & SCREENSHOT PREVIEW MODAL OVERLAY -->
+  <div class="modal-overlay" id="doc-preview-modal" onclick="if(event.target===this) closeMediaPreview()">
+    <div class="modal-container" style="max-width: 920px; width: 95%; max-height: 92vh; padding: 22px; box-sizing: border-box; display: flex; flex-direction: column;">
+      
+      <!-- Modal Header -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 14px;">
+        <h3 id="doc-preview-title" style="color: var(--accent-cyan); font-size: 18px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 10px;">
+          <i class="fa-solid fa-eye"></i> Document Preview
+        </h3>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <a id="doc-preview-download-btn" href="#" target="_blank" download class="btn-secondary" style="padding: 6px 14px; font-size: 13px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-download"></i> Download File
+          </a>
+          <button type="button" class="btn-secondary" style="padding: 6px 14px; font-size: 13px;" onclick="closeMediaPreview()">
+            <i class="fa-solid fa-xmark"></i> Close
+          </button>
+        </div>
       </div>
-      <div class="lightbox-body" id="lightbox-body-content">
-        <!-- Dynamic Image Content -->
+
+      <!-- Preview Body Viewport -->
+      <div id="doc-preview-body" style="flex: 1; min-height: 380px; max-height: 72vh; overflow: auto; background: rgba(0, 0, 0, 0.4); border-radius: 12px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; padding: 14px; position: relative;">
+        <!-- Dynamic content: image lightbox, iframe PDF, or PPT viewer -->
       </div>
     </div>
   </div>
