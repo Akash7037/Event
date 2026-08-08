@@ -3,8 +3,31 @@ const path = require('path');
 const fs = require('fs');
 const { getIsConnected } = require('../config/db');
 
-// In-Memory Fallback Storage
+const memoryBackupPath = path.join(__dirname, '../uploads/in_memory_teams_backup.json');
+
+// In-Memory Fallback Storage with Auto JSON Disk Persistence
 const inMemoryTeams = [];
+
+try {
+  if (fs.existsSync(memoryBackupPath)) {
+    const rawData = fs.readFileSync(memoryBackupPath, 'utf-8');
+    const parsedData = JSON.parse(rawData);
+    if (Array.isArray(parsedData)) {
+      inMemoryTeams.push(...parsedData);
+      console.log(`[Memory Persistence] Restored ${parsedData.length} registration(s) from local JSON backup.`);
+    }
+  }
+} catch (err) {
+  console.warn('[Memory Persistence Warning] Could not restore backup:', err.message);
+}
+
+const saveInMemoryTeamsBackup = () => {
+  try {
+    fs.writeFileSync(memoryBackupPath, JSON.stringify(inMemoryTeams, null, 2), 'utf-8');
+  } catch (err) {
+    console.warn('[Memory Persistence Warning] Could not write backup:', err.message);
+  }
+};
 
 // @desc    Register new startup team
 // @route   POST /api/teams/register
@@ -67,8 +90,13 @@ exports.registerTeam = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Both PPT file and Eureka Registration Screenshot are required uploads.' });
     }
 
-    const pptFilePath = '/uploads/ppt/' + req.files.pptFile[0].filename;
-    const screenshotPath = '/uploads/screenshots/' + req.files.eurekaScreenshot[0].filename;
+    const pptFilePath = (req.files.pptFile[0] && req.files.pptFile[0].cloudinaryUrl)
+      ? req.files.pptFile[0].cloudinaryUrl
+      : ('/uploads/ppt/' + req.files.pptFile[0].filename);
+
+    const screenshotPath = (req.files.eurekaScreenshot[0] && req.files.eurekaScreenshot[0].cloudinaryUrl)
+      ? req.files.eurekaScreenshot[0].cloudinaryUrl
+      : ('/uploads/screenshots/' + req.files.eurekaScreenshot[0].filename);
     const formattedLeaderRegNo = leaderRegNo.trim().toUpperCase();
 
     // Check duplicate leader register number
@@ -134,6 +162,7 @@ exports.registerTeam = async (req, res, next) => {
         ...teamData
       };
       inMemoryTeams.unshift(newTeam);
+      saveInMemoryTeamsBackup();
     }
 
     // Dispatch backup email (PPT + Screenshot) asynchronously to for12345freelancing@gmail.com
@@ -248,3 +277,4 @@ exports.downloadPptTemplate = (req, res) => {
 };
 
 module.exports.inMemoryTeams = inMemoryTeams;
+module.exports.saveInMemoryTeamsBackup = saveInMemoryTeamsBackup;

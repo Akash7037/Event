@@ -1,6 +1,7 @@
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
 
 // Ensure upload directories exist
 const pptDir = path.join(__dirname, '../uploads/ppt');
@@ -11,6 +12,23 @@ if (!fs.existsSync(pptDir)) {
 }
 if (!fs.existsSync(screenshotDir)) {
   fs.mkdirSync(screenshotDir, { recursive: true });
+}
+
+// Check if Cloudinary is configured via environment variables
+const isCloudinaryConfigured = () => {
+  return !!(
+    process.env.CLOUDINARY_CLOUD_NAME &&
+    process.env.CLOUDINARY_API_KEY &&
+    process.env.CLOUDINARY_API_SECRET
+  );
+};
+
+if (isCloudinaryConfigured()) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+  });
 }
 
 // Storage engine
@@ -69,9 +87,9 @@ const uploadTeamFiles = upload.fields([
   { name: 'eurekaScreenshot', maxCount: 1 }
 ]);
 
-// Wrapper middleware to handle size limits per field cleanly
+// Wrapper middleware to handle size limits per field cleanly + optional Cloudinary CDN upload
 const uploadMiddleware = (req, res, next) => {
-  uploadTeamFiles(req, res, function (err) {
+  uploadTeamFiles(req, res, async function (err) {
     if (err instanceof multer.MulterError) {
       if (err.code === 'LIMIT_FILE_SIZE') {
         return res.status(400).json({ success: false, message: 'File size exceeds maximum limit (PPT: max 10MB, Screenshot: max 5MB).' });
@@ -88,6 +106,35 @@ const uploadMiddleware = (req, res, next) => {
       }
       if (req.files.pptFile && req.files.pptFile[0].size > 10 * 1024 * 1024) {
         return res.status(400).json({ success: false, message: 'Presentation PPT file exceeds 10MB size limit!' });
+      }
+
+      // If Cloudinary credentials are set in environment variables, upload to Cloudinary CDN
+      if (isCloudinaryConfigured()) {
+        try {
+          if (req.files.eurekaScreenshot && req.files.eurekaScreenshot[0]) {
+            const file = req.files.eurekaScreenshot[0];
+            const result = await cloudinary.uploader.upload(file.path, {
+              folder: 'pitch_competition/screenshots',
+              resource_type: 'auto'
+            });
+            file.cloudinaryUrl = result.secure_url;
+            // Clean up local temp file after cloud upload
+            fs.unlink(file.path, () => {});
+          }
+
+          if (req.files.pptFile && req.files.pptFile[0]) {
+            const file = req.files.pptFile[0];
+            const result = await cloudinary.uploader.upload(file.path, {
+              folder: 'pitch_competition/ppt',
+              resource_type: 'raw' // 'raw' ensures .ppt/.pptx extension & binary structure are preserved
+            });
+            file.cloudinaryUrl = result.secure_url;
+            // Clean up local temp file after cloud upload
+            fs.unlink(file.path, () => {});
+          }
+        } catch (cloudErr) {
+          console.warn('[Cloudinary Warning] Cloud upload failed, using local disk copy:', cloudErr.message);
+        }
       }
     }
     next();

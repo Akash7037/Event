@@ -34,8 +34,28 @@ autoSeedAdmin();
 
 // Middleware
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
+
+// Rate Limiting Security
+const rateLimit = require('express-rate-limit');
+const registerLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 50,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many registration attempts from this IP. Please try again after 15 minutes.' }
+});
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many login attempts from this IP. Please try again after 15 minutes.' }
+});
+
+app.use('/api/teams/register', registerLimiter);
+app.use('/api/admin/login', loginLimiter);
 
 // Serve static frontend files (with no-cache headers for instant updates)
 app.use(express.static(path.join(__dirname, 'client'), {
