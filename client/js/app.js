@@ -583,3 +583,51 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// Eureka Registration Guide Modal & View Switching
+function openEurekaGuideModal() {
+  const modal = document.getElementById('eureka-guide-modal');
+  if (modal) modal.classList.add('active');
+}
+
+function closeEurekaGuideModal() {
+  const modal = document.getElementById('eureka-guide-modal');
+  if (modal) modal.classList.remove('active');
+}
+
+function switchGuideTab(type) {
+  const mobileCont = document.getElementById('guide-img-mobile-container');
+  const desktopCont = document.getElementById('guide-img-desktop-container');
+  const mobileBtn = document.getElementById('guide-tab-mobile-btn');
+  const desktopBtn = document.getElementById('guide-tab-desktop-btn');
+
+  if (!mobileCont || !desktopCont) return;
+
+  if (type === 'mobile') {
+    mobileCont.style.display = 'block';
+    desktopCont.style.display = 'none';
+    if (mobileBtn) {
+      mobileBtn.style.background = 'var(--gradient-primary)';
+      mobileBtn.style.color = '#fff';
+      mobileBtn.style.borderColor = 'transparent';
+    }
+    if (desktopBtn) {
+      desktopBtn.style.background = 'transparent';
+      desktopBtn.style.color = 'var(--text-secondary)';
+      desktopBtn.style.borderColor = 'var(--border-color)';
+    }
+  } else {
+    mobileCont.style.display = 'none';
+    desktopCont.style.display = 'block';
+    if (desktopBtn) {
+      desktopBtn.style.background = 'var(--gradient-primary)';
+      desktopBtn.style.color = '#fff';
+      desktopBtn.style.borderColor = 'transparent';
+    }
+    if (mobileBtn) {
+      mobileBtn.style.background = 'transparent';
+      mobileBtn.style.color = 'var(--text-secondary)';
+      mobileBtn.style.borderColor = 'var(--border-color)';
+    }
+  }
+}
+
