@@ -117,7 +117,7 @@
           </a>
           <button type="button" class="btn-secondary" onclick="openEurekaGuideModal()"
             style="display: inline-flex; align-items: center; gap: 8px; width: auto; padding: 10px 18px; font-weight: 600;">
-            <i class="fa-solid fa-mobile-screen-button"></i> View Mobile Screen Guide
+            <i class="fa-solid fa-image"></i> View Step 2 Field Guide Screenshot
           </button>
         </div>
 
@@ -132,50 +132,7 @@
           </button>
         </div>
 
-        <!-- VISUAL FIELD PREVIEW GUIDE -->
-        <div style="margin: 18px 0; border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; background: rgba(0, 0, 0, 0.2); text-align: center; padding: 14px;">
-          <div style="font-size: 13px; font-weight: 600; color: var(--accent-cyan); margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-            <span><i class="fa-solid fa-eye"></i> Eureka Step 2 Field Preview Guide:</span>
-            <div style="display: flex; gap: 6px;">
-              <button type="button" class="btn-secondary" id="guide-tab-mobile-btn" onclick="switchGuideTab('mobile')" style="padding: 4px 12px; font-size: 12px; background: var(--gradient-primary); color: #fff; border-color: transparent;">
-                <i class="fa-solid fa-mobile-screen-button"></i> Mobile View
-              </button>
-              <button type="button" class="btn-secondary" id="guide-tab-desktop-btn" onclick="switchGuideTab('desktop')" style="padding: 4px 12px; font-size: 12px; background: transparent; color: var(--text-secondary);">
-                <i class="fa-solid fa-laptop"></i> Desktop View
-              </button>
-            </div>
-          </div>
-
-          <!-- Mobile Image View -->
-          <div id="guide-img-mobile-container" style="display: block; max-width: 360px; margin: 0 auto;">
-            <a href="assets/eureka_mobile_guide.png" target="_blank" rel="noopener noreferrer" title="Click to view full size image in new tab">
-              <img src="assets/eureka_mobile_guide.png" alt="Mobile Eureka Registration NEC Selection & Referral ID Guide" style="width: 100%; border-radius: 12px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.15); cursor: pointer;">
-            </a>
-            <div style="margin-top: 8px;">
-              <a href="assets/eureka_mobile_guide.png" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; font-size: 12px; text-decoration: none;">
-                <i class="fa-solid fa-up-right-and-down-left-from-center"></i> Open Full Image
-              </a>
-            </div>
-          </div>
-
-          <!-- Desktop Image View -->
-          <div id="guide-img-desktop-container" style="display: none; max-width: 100%;">
-            <a href="assets/eureka_guide.png" target="_blank" rel="noopener noreferrer" title="Click to view full size image in new tab">
-              <img src="assets/eureka_guide.png" alt="Desktop Eureka Registration NEC Selection & Referral ID Guide" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); cursor: pointer;">
-            </a>
-            <div style="margin-top: 8px;">
-              <a href="assets/eureka_guide.png" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; font-size: 12px; text-decoration: none;">
-                <i class="fa-solid fa-up-right-and-down-left-from-center"></i> Open Full Image
-              </a>
-            </div>
-          </div>
-
-          <div style="font-size: 12px; color: var(--text-secondary); margin-top: 10px;">
-            Select <strong>NEC</strong> in <em>"From where did you hear about Eureka! 2026 *"</em> and type <strong>NEC2621509</strong> in <em>"Referral ID *"</em>.
-          </div>
-        </div>
-
-        <p style="font-size: 13px; color: var(--accent-amber); font-weight: 500;">
+        <p style="font-size: 13px; color: var(--accent-amber); font-weight: 500; margin-top: 14px;">
           <i class="fa-solid fa-circle-info"></i> After completing Eureka registration, take a screenshot clearly
           showing the NEC ID and upload it below. Registration cannot be completed without this screenshot!
         </p>
