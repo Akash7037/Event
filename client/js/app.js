@@ -38,12 +38,16 @@ document.addEventListener('DOMContentLoaded', () => {
 async function checkRegistrationIsOpen() {
   try {
     const res = await fetch('/api/teams/registration-status');
+    const contentType = res.headers.get('content-type') || '';
+    if (!res.ok || !contentType.includes('application/json')) {
+      return;
+    }
     const data = await res.json();
     if (data.success && data.isOpen === false) {
       showRegistrationClosedBanner();
     }
   } catch (err) {
-    console.warn('Could not check registration status:', err);
+    // Graceful fallback for static dev servers
   }
 }
 
