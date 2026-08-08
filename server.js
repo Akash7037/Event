@@ -90,7 +90,7 @@ app.use('/api/*', (req, res) => {
 });
 
 // Serve HTML views
-app.get('/admin', (req, res) => {
+app.get(['/ecell-portal', '/admin'], (req, res) => {
   res.sendFile(path.join(__dirname, 'client', 'admin.html'));
 });
 
@@ -107,7 +107,7 @@ app.listen(PORT, () => {
   console.log(`====================================================`);
   console.log(`🚀 Startup Pitching Competition Server running on port ${PORT}`);
   console.log(`🌐 Student Portal: http://localhost:${PORT}`);
-  console.log(`🔐 Admin Portal:   http://localhost:${PORT}/admin`);
+  console.log(`🔐 E-Cell Portal:  http://localhost:${PORT}/ecell-portal`);
   console.log(`====================================================`);
 
   // Render / Cloud Hosting Self-Ping Keep-Alive (runs every 10 mins to eliminate cold starts)
