@@ -538,36 +538,77 @@ async function openTeamDetailsModal(teamId) {
       </div>
 
       <!-- Files Inspection & Verification Area -->
-      <div style="background: rgba(6, 182, 212, 0.05); border: 1px solid rgba(6, 182, 212, 0.3); padding: 20px; border-radius: var(--radius-md); margin-bottom: 16px;">
-        <h4 style="color: var(--accent-cyan); margin-bottom: 12px;"><i class="fa-solid fa-folder-open"></i> Submissions & Eureka Verification</h4>
-        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-          <button type="button" class="btn-primary" style="padding: 8px 16px; font-size: 13px; background: linear-gradient(135deg, #f59e0b, #d97706); border-color: transparent;" onclick="openMediaPreview('${pptUrl}', 'Pitch Deck - ${encodeURIComponent(team.teamName)}', 'ppt')">
-            <i class="fa-solid fa-file-powerpoint"></i> Preview PPT Deck
-          </button>
-          <a href="${pptUrl}" target="_blank" download class="btn-secondary" style="text-decoration: none;">
-            <i class="fa-solid fa-download"></i> Download PPT
-          </a>
-          <button type="button" class="btn-primary" style="padding: 8px 16px; font-size: 13px;" onclick="openMediaPreview('${screenshotUrl}', 'Eureka Screenshot - ${encodeURIComponent(team.teamName)}', 'image')">
-            <i class="fa-solid fa-expand"></i> Preview Screenshot Lightbox
-          </button>
-          <a href="${screenshotUrl}" target="_blank" class="btn-secondary" style="text-decoration: none; border-color: var(--accent-cyan);">
-            <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Raw Screenshot
-          </a>
-          <button type="button" class="btn-secondary" style="border-color: var(--accent-terracotta); color: var(--accent-terracotta);" onclick="triggerManualBackupEmail('${team._id}')">
-            <i class="fa-solid fa-envelope"></i> Send Backup Email to for12345freelancing@gmail.com
-          </button>
-          ${team.status === 'Approved' ? `
-            <button type="button" class="btn-secondary" style="border-color: var(--accent-emerald); color: var(--accent-emerald);" onclick="handleApproveTeam()">
-              <i class="fa-solid fa-qrcode"></i> Resend Approval QR Email
-            </button>
-          ` : ''}
-          <button type="button" class="btn-secondary" style="border-color: var(--accent-rose); color: var(--accent-rose);" onclick="triggerDeleteTeam('${team._id}', '${encodeURIComponent(team.teamName)}')">
-            <i class="fa-solid fa-trash-can"></i> Delete Team Registration
-          </button>
+      <div style="background: rgba(14, 165, 233, 0.05); border: 1px solid rgba(14, 165, 233, 0.2); padding: 18px; border-radius: var(--radius-lg); margin-bottom: 16px;">
+        <h4 style="color: var(--accent-cyan); margin-bottom: 14px; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-folder-open"></i> Submissions & Eureka Verification
+        </h4>
+
+        <!-- 2-Column Grid for Files -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-bottom: 16px;">
+          
+          <!-- File Card 1: Pitch Deck -->
+          <div style="background: var(--bg-card, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border-color); padding: 14px; border-radius: var(--radius-md); display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(245, 158, 11, 0.15); color: #f59e0b; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;">
+                <i class="fa-solid fa-file-powerpoint"></i>
+              </div>
+              <div style="min-width: 0; flex: 1;">
+                <div style="font-size: 13px; font-weight: 700; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Presentation Pitch Deck</div>
+                <div style="font-size: 11px; color: var(--text-muted);">PPT / PPTX Document</div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="btn-primary" style="flex: 1; padding: 7px 10px; font-size: 12px; background: linear-gradient(135deg, #f59e0b, #d97706); border: none; font-weight: 600; justify-content: center;" onclick="openMediaPreview('${pptUrl}', 'Pitch Deck - ${encodeURIComponent(team.teamName)}', 'ppt')">
+                <i class="fa-solid fa-eye"></i> Preview
+              </button>
+              <a href="${pptUrl}" target="_blank" download class="btn-secondary" style="padding: 7px 12px; font-size: 12px; text-decoration: none; justify-content: center;" title="Download PPT File">
+                <i class="fa-solid fa-download"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- File Card 2: Eureka Proof -->
+          <div style="background: var(--bg-card, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border-color); padding: 14px; border-radius: var(--radius-md); display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(14, 165, 233, 0.15); color: var(--accent-cyan); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;">
+                <i class="fa-solid fa-file-image"></i>
+              </div>
+              <div style="min-width: 0; flex: 1;">
+                <div style="font-size: 13px; font-weight: 700; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Eureka Proof Screenshot</div>
+                <div style="font-size: 11px; color: var(--text-muted);">PNG / JPG / PDF Verification</div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="btn-primary" style="flex: 1; padding: 7px 10px; font-size: 12px; font-weight: 600; justify-content: center;" onclick="openMediaPreview('${screenshotUrl}', 'Eureka Proof - ${encodeURIComponent(team.teamName)}', 'image')">
+                <i class="fa-solid fa-expand"></i> Preview
+              </button>
+              <a href="${screenshotUrl}" target="_blank" class="btn-secondary" style="padding: 7px 12px; font-size: 12px; text-decoration: none; border-color: var(--accent-cyan); justify-content: center;" title="Open Raw File in New Tab">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+              </a>
+            </div>
+          </div>
+
         </div>
-        <p style="font-size: 12px; color: var(--text-muted); margin-top: 10px;">
-          <i class="fa-solid fa-circle-info"></i> Verify that the Eureka registration screenshot clearly contains NEC ID <strong>NEC2621509</strong> before approving.
-        </p>
+
+        <!-- Action Toolbar Row -->
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 12px;">
+          <div style="font-size: 12px; color: var(--text-muted); flex: 1; min-width: 200px;">
+            <i class="fa-solid fa-circle-info" style="color: var(--accent-cyan);"></i> Verify referral code <strong>NEC2621509</strong> before approving.
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button type="button" class="btn-secondary" style="padding: 6px 12px; font-size: 12px; border-color: var(--accent-terracotta); color: var(--accent-terracotta);" onclick="triggerManualBackupEmail('${team._id}')" title="Send backup email with attachments to organizer email">
+              <i class="fa-solid fa-envelope"></i> Send Backup Email
+            </button>
+            ${team.status === 'Approved' ? `
+              <button type="button" class="btn-secondary" style="padding: 6px 12px; font-size: 12px; border-color: var(--accent-emerald); color: var(--accent-emerald);" onclick="handleApproveTeam()" title="Resend Approval QR Pass Email">
+                <i class="fa-solid fa-qrcode"></i> Resend Pass
+              </button>
+            ` : ''}
+            <button type="button" class="btn-secondary" style="padding: 6px 12px; font-size: 12px; border-color: var(--accent-rose); color: var(--accent-rose);" onclick="triggerDeleteTeam('${team._id}', '${encodeURIComponent(team.teamName)}')">
+              <i class="fa-solid fa-trash-can"></i> Delete
+            </button>
+          </div>
+        </div>
       </div>
 
       ${team.status === 'Rejected' && team.rejectionReason ? `
