@@ -70,92 +70,82 @@
       }
     }
 
-    @keyframes pulseGuideGlow {
-      0% {
-        box-shadow: 0 4px 18px rgba(217, 119, 87, 0.2), 0 0 0 0 rgba(56, 189, 248, 0.5);
-      }
-
-      70% {
-        box-shadow: 0 4px 18px rgba(217, 119, 87, 0.2), 0 0 0 8px rgba(56, 189, 248, 0);
-      }
-
-      100% {
-        box-shadow: 0 4px 18px rgba(217, 119, 87, 0.2), 0 0 0 0 rgba(56, 189, 248, 0);
-      }
+    /* Eureka Step 1 Action Buttons Responsive Layout */
+    .eureka-action-buttons {
+      margin: 18px 0 22px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      width: 100%;
     }
 
-    /* Ultra-Impressive Glowing Guide Action Button */
-    .btn-guide-glow {
+    .btn-eureka-portal {
+      flex: 1;
+      min-width: 220px;
       display: inline-flex;
       align-items: center;
-      gap: 12px;
-      padding: 8px 18px 8px 12px;
-      background: linear-gradient(135deg, rgba(217, 119, 87, 0.18) 0%, rgba(56, 189, 248, 0.18) 100%);
-      border: 1.5px solid rgba(56, 189, 248, 0.5);
-      border-radius: 35px;
-      color: var(--text-primary);
-      font-family: inherit;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      animation: pulseGuideGlow 2.5s infinite;
-      position: relative;
-      overflow: hidden;
+      justify-content: center;
+      gap: 10px;
+      padding: 13px 22px;
+      background: var(--gradient-primary, linear-gradient(135deg, #d97757, #e08e70));
+      color: #ffffff !important;
+      font-weight: 700;
+      font-size: 14.5px;
+      border-radius: 30px;
       text-decoration: none;
+      box-shadow: 0 4px 18px rgba(217, 119, 87, 0.35);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      box-sizing: border-box;
+      text-align: center;
     }
 
-    .btn-guide-glow:hover,
-    .btn-guide-glow:active {
-      transform: translateY(-2px) scale(1.02);
-      background: linear-gradient(135deg, rgba(217, 119, 87, 0.3) 0%, rgba(56, 189, 248, 0.3) 100%);
-      border-color: #38bdf8;
-      box-shadow: 0 8px 25px rgba(56, 189, 248, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    .btn-eureka-portal:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(217, 119, 87, 0.5);
+      color: #ffffff !important;
     }
 
-    .btn-icon-circle {
-      display: flex;
+    .btn-eureka-guide {
+      flex: 1;
+      min-width: 220px;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      background: var(--gradient-primary, linear-gradient(135deg, #d97757, #e08e70));
-      color: #ffffff;
-      font-size: 14px;
-      box-shadow: 0 3px 10px rgba(217, 119, 87, 0.4);
-      flex-shrink: 0;
-    }
-
-    .btn-guide-text {
-      display: flex;
-      flex-direction: column;
-      text-align: left;
-      line-height: 1.25;
-    }
-
-    .btn-guide-title {
-      font-size: 13.5px;
+      gap: 10px;
+      padding: 13px 22px;
+      background: linear-gradient(135deg, #0ea5e9, #0284c7);
+      color: #ffffff !important;
       font-weight: 700;
-      color: var(--text-primary);
-      letter-spacing: -0.2px;
+      font-size: 14.5px;
+      border-radius: 30px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 18px rgba(14, 165, 233, 0.4);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      box-sizing: border-box;
+      text-align: center;
     }
 
-    .btn-guide-subtitle {
-      font-size: 11px;
-      color: var(--accent-cyan, #38bdf8);
-      font-weight: 600;
-      margin-top: 1px;
+    .btn-eureka-guide:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(14, 165, 233, 0.6);
+      color: #ffffff !important;
     }
 
-    .btn-guide-arrow {
-      font-size: 12px;
-      color: var(--text-secondary);
-      transition: transform 0.2s ease, color 0.2s ease;
-      margin-left: 4px;
-    }
+    @media (max-width: 640px) {
+      .eureka-action-buttons {
+        flex-direction: column;
+        width: 100%;
+      }
 
-    .btn-guide-glow:hover .btn-guide-arrow {
-      transform: translateX(3px);
-      color: #38bdf8;
+      .btn-eureka-portal,
+      .btn-eureka-guide {
+        width: 100%;
+        min-width: 100%;
+        padding: 14px 16px;
+        font-size: 14px;
+      }
     }
   </style>
   <script>
@@ -316,14 +306,12 @@
           <strong>Eureka Competition</strong>.
         </p>
 
-        <div style="margin: 16px 0 20px; display: flex; flex-wrap: wrap; gap: 14px; align-items: center;">
-          <a href="https://www.ecell.in/eureka/register" target="_blank" rel="noopener noreferrer" class="btn-primary"
-            style="display: inline-flex; align-items: center; gap: 10px; width: auto; text-decoration: none; padding: 12px 24px; font-weight: 700; font-size: 15px; border-radius: 30px; min-height: 48px; box-sizing: border-box;">
-            <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Eureka Registration Portal
+        <div class="eureka-action-buttons">
+          <a href="https://www.ecell.in/eureka/register" target="_blank" rel="noopener noreferrer" class="btn-eureka-portal">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Eureka Portal
           </a>
-          <button type="button" class="btn-secondary" onclick="openEurekaGuideModal()"
-            style="display: inline-flex; align-items: center; gap: 10px; width: auto; padding: 12px 24px; font-weight: 700; font-size: 15px; border-radius: 30px; min-height: 48px; border: 2px solid var(--accent-cyan); color: var(--text-primary); background: rgba(56, 189, 248, 0.12); cursor: pointer; transition: all 0.25s ease; box-sizing: border-box;">
-            <i class="fa-solid fa-image" style="color: var(--accent-cyan); font-size: 16px;"></i> View Step 2 Field Guide Screenshot
+          <button type="button" class="btn-eureka-guide" onclick="openEurekaGuideModal()">
+            <i class="fa-solid fa-image"></i> View Step 2 Field Guide
           </button>
         </div>
 
