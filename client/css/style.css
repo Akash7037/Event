@@ -365,6 +365,38 @@ h1, h2, h3, h4, h5, h6 {
   text-decoration: none;
 }
 
+.brand-logo-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12), 0 0 0 2px var(--accent-cyan);
+  padding: 3px;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.brand:hover .brand-logo-wrapper {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2), 0 0 0 2.5px var(--accent-cyan);
+  transform: scale(1.05);
+}
+
+.brand-logo-img {
+  width: 38px;
+  height: 38px;
+  max-width: 38px;
+  max-height: 38px;
+  object-fit: contain;
+  border-radius: 50%;
+  display: block;
+}
+
 .brand-icon {
   width: 44px;
   height: 44px;
