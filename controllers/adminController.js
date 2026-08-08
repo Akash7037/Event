@@ -73,7 +73,7 @@ exports.loginAdmin = async (req, res, next) => {
     }
 
     if (!admin) {
-      return res.status(401).json({ success: false, message: 'Invalid admin credentials. Default credentials: Username: admin or Suba | Password: admin123' });
+      return res.status(401).json({ success: false, message: 'Invalid username or password.' });
     }
 
     let isMatch = false;
@@ -84,7 +84,7 @@ exports.loginAdmin = async (req, res, next) => {
     }
 
     if (!isMatch) {
-      return res.status(401).json({ success: false, message: 'Invalid admin credentials.' });
+      return res.status(401).json({ success: false, message: 'Invalid username or password.' });
     }
 
     const token = generateToken(admin._id);

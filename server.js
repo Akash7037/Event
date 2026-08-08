@@ -89,9 +89,14 @@ app.use('/api/*', (req, res) => {
   res.status(404).json({ success: false, message: `API endpoint ${req.originalUrl} not found.` });
 });
 
-// Serve HTML views
-app.get(['/ecell-portal', '/admin'], (req, res) => {
-  res.sendFile(path.join(__dirname, 'client', 'admin.html'));
+// Serve Admin Portal ONLY via /ecell-portal
+app.get(['/ecell-portal', '/ecell-portal.html'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'client', 'ecell-portal.html'));
+});
+
+// Block /admin and /admin.html from opening the admin portal
+app.get(['/admin', '/admin.html'], (req, res) => {
+  res.redirect('/');
 });
 
 app.get('*', (req, res) => {
