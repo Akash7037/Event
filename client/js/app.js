@@ -21,21 +21,18 @@ function updateThemeToggleUI(theme) {
   const toggleBtn = document.getElementById('theme-toggle-btn');
   const headerBtn = document.getElementById('theme-toggle-header-btn');
   const mobileHeaderBtn = document.getElementById('mobile-header-theme-btn');
-  const mobileThemeIcon = document.getElementById('mobile-nav-theme-icon');
-  const mobileThemeText = document.getElementById('mobile-nav-theme-text');
+  const mobileAdminBtn = document.getElementById('mobile-admin-theme-btn');
 
   if (theme === 'dark') {
     if (toggleBtn) toggleBtn.innerHTML = '<i class="fa-solid fa-sun"></i> <span id="theme-toggle-text">Light Mode</span>';
     if (headerBtn) headerBtn.innerHTML = '<i class="fa-solid fa-sun" style="color: #f59e0b;"></i>';
     if (mobileHeaderBtn) mobileHeaderBtn.innerHTML = '<i class="fa-solid fa-sun" style="color: #f59e0b;"></i>';
-    if (mobileThemeIcon) mobileThemeIcon.className = 'fa-solid fa-sun';
-    if (mobileThemeText) mobileThemeText.textContent = 'Light';
+    if (mobileAdminBtn) mobileAdminBtn.innerHTML = '<i class="fa-solid fa-sun" style="color: #f59e0b;"></i>';
   } else {
     if (toggleBtn) toggleBtn.innerHTML = '<i class="fa-solid fa-moon"></i> <span id="theme-toggle-text">Dark Mode</span>';
     if (headerBtn) headerBtn.innerHTML = '<i class="fa-solid fa-moon"></i>';
     if (mobileHeaderBtn) mobileHeaderBtn.innerHTML = '<i class="fa-solid fa-moon"></i>';
-    if (mobileThemeIcon) mobileThemeIcon.className = 'fa-solid fa-moon';
-    if (mobileThemeText) mobileThemeText.textContent = 'Theme';
+    if (mobileAdminBtn) mobileAdminBtn.innerHTML = '<i class="fa-solid fa-moon"></i>';
   }
 }
 

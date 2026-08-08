@@ -1873,6 +1873,33 @@ textarea {
   }
 }
 
+/* Top Right Theme Toggle Icon Button for Header Navbar */
+.top-right-theme-btn {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--bg-card, rgba(255, 255, 255, 0.95));
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  cursor: pointer;
+  z-index: 99999;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  transition: var(--transition-fast);
+}
+
+.top-right-theme-btn:hover {
+  transform: translateY(-50%) scale(1.08);
+  border-color: var(--accent-cyan);
+}
+
 .stat-card.stat-pulse {
   animation: pulseStatHighlight 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }

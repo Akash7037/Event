@@ -24,8 +24,8 @@
 
   <!-- Admin Navbar -->
   <header class="navbar">
-    <div class="container nav-container">
-      <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;" class="brand-mobile-wrapper">
+    <div class="container nav-container" style="position: relative;">
+      <div>
         <a href="ecell-portal" class="brand">
           <div class="brand-logo-wrapper">
             <img src="assets/ecell_logo.png" alt="E-Cell VSBCETC Logo" class="brand-logo-img">
@@ -35,10 +35,10 @@
             <span>Startup Pitching 2026</span>
           </div>
         </a>
-        <button type="button" class="mobile-theme-header-btn" id="mobile-admin-theme-btn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
-          <i class="fa-solid fa-moon"></i>
-        </button>
       </div>
+      <button type="button" class="top-right-theme-btn" id="mobile-admin-theme-btn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+        <i class="fa-solid fa-moon"></i>
+      </button>
       <div class="nav-links" id="admin-nav-actions" style="display: none;">
         <span style="font-size: 14px; color: var(--text-secondary);" id="admin-user-display">
           <i class="fa-solid fa-user-shield"></i> Admin
