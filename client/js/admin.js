@@ -390,14 +390,23 @@ async function loadTeamsData() {
       }
 
       countLabel.textContent = `Showing ${filteredData.length} team registrations`;
+      const mobileList = document.getElementById('mobile-teams-list');
+
       if (filteredData.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 40px;">
+            <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 40px;">
               No team registrations found matching current filters.
             </td>
           </tr>
         `;
+        if (mobileList) {
+          mobileList.innerHTML = `
+            <div style="text-align: center; color: var(--text-muted); padding: 30px;">
+              No team registrations found matching current filters.
+            </div>
+          `;
+        }
         return;
       }
 
@@ -462,9 +471,8 @@ async function loadTeamsData() {
       }).join('');
 
       // Populate Touch Mobile Team Cards View (< 768px)
-      const mobileList = document.getElementById('mobile-teams-list');
       if (mobileList) {
-        mobileList.innerHTML = teams.map(team => {
+        mobileList.innerHTML = filteredData.map(team => {
           const dateStr = new Date(team.submittedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
           let badgeClass = 'badge-pending';
           let statusIcon = 'fa-hourglass-half';
