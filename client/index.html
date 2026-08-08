@@ -499,42 +499,66 @@
         Got It
       </button>
     </div>
-  <!-- EUREKA MOBILE GUIDE MODAL OVERLAY -->
-  <div class="modal-overlay" id="eureka-guide-modal">
-    <div class="modal-container" style="max-width: 440px; text-align: center; max-height: 90vh; overflow-y: auto;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h3 style="font-size: 18px; color: var(--accent-cyan); display: flex; align-items: center; gap: 8px;">
-          <i class="fa-solid fa-mobile-screen-button"></i> Mobile Registration Guide
+  <!-- EUREKA MOBILE & DESKTOP FIELD GUIDE POPUP MODAL OVERLAY -->
+  <div class="modal-overlay" id="eureka-guide-modal" onclick="if(event.target === this) closeEurekaGuideModal()">
+    <div class="modal-container">
+      
+      <!-- Modal Header -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+        <h3 style="font-size: 17px; font-weight: 700; color: var(--accent-cyan); display: flex; align-items: center; gap: 8px; margin: 0;">
+          <i class="fa-solid fa-mobile-screen-button"></i> Eureka Registration Guide
         </h3>
-        <button type="button" class="btn-secondary" style="padding: 4px 12px; font-size: 12px;" onclick="closeEurekaGuideModal()">
+        <button type="button" class="btn-secondary" style="padding: 5px 12px; font-size: 13px; border-radius: 20px;" onclick="closeEurekaGuideModal()">
           <i class="fa-solid fa-xmark"></i> Close
         </button>
       </div>
-      <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
-        On your smartphone screen, scroll down to Step 2 <strong>(Personal Information)</strong>:
-      </p>
-      <div style="background: #000; padding: 10px; border-radius: 14px; display: inline-block; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); border: 1px solid rgba(255, 255, 255, 0.15);">
-        <a href="assets/eureka_mobile_guide.png" target="_blank" rel="noopener noreferrer" title="Click to open full high-resolution image in new tab">
-          <img src="assets/eureka_mobile_guide.png" alt="Mobile Eureka Registration Field Guide" style="width: 100%; max-width: 320px; border-radius: 10px; display: block; cursor: pointer;">
-        </a>
-        <div style="margin-top: 8px; text-align: center;">
-          <a href="assets/eureka_mobile_guide.png" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; font-size: 12px; text-decoration: none;">
-            <i class="fa-solid fa-up-right-and-down-left-from-center"></i> Open Full Image in New Tab
-          </a>
+
+      <!-- View Selector Tabs (Mobile vs Desktop) -->
+      <div style="display: flex; gap: 8px; margin-bottom: 16px; background: rgba(0, 0, 0, 0.3); padding: 4px; border-radius: 30px; border: 1px solid var(--border-color);">
+        <button type="button" class="btn-secondary" id="modal-tab-mobile-btn" onclick="switchGuideTab('mobile')"
+          style="flex: 1; padding: 8px 12px; font-size: 13px; font-weight: 600; border-radius: 25px; background: var(--gradient-primary); color: #ffffff; border-color: transparent; box-shadow: 0 4px 14px rgba(217, 119, 87, 0.4);">
+          <i class="fa-solid fa-mobile-screen-button"></i> Mobile View
+        </button>
+        <button type="button" class="btn-secondary" id="modal-tab-desktop-btn" onclick="switchGuideTab('desktop')"
+          style="flex: 1; padding: 8px 12px; font-size: 13px; font-weight: 600; border-radius: 25px; background: transparent; color: var(--text-secondary); border-color: transparent;">
+          <i class="fa-solid fa-laptop"></i> Desktop View
+        </button>
+      </div>
+
+      <!-- Mobile Guide Image Box -->
+      <div id="modal-guide-img-mobile" style="display: block; width: 100%; text-align: center;">
+        <div style="background: #000; padding: 10px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); display: inline-block; width: 100%; max-width: 320px; box-sizing: border-box;">
+          <img src="assets/eureka_mobile_guide.png" alt="Mobile Eureka Registration Field Guide" style="width: 100%; height: auto; border-radius: 10px; display: block;">
         </div>
       </div>
-      <div style="margin-top: 16px; text-align: left; background: rgba(0, 0, 0, 0.25); padding: 14px; border-radius: 10px; font-size: 13px; border: 1px solid var(--border-color);">
-        <div style="margin-bottom: 8px;">1. <strong>From where did you hear about Eureka! 2026 *</strong>: Select <strong style="color: var(--accent-cyan);">NEC</strong></div>
+
+      <!-- Desktop Guide Image Box -->
+      <div id="modal-guide-img-desktop" style="display: none; width: 100%; text-align: center;">
+        <div style="background: #000; padding: 8px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); width: 100%; box-sizing: border-box;">
+          <img src="assets/eureka_guide.png" alt="Desktop Eureka Registration Field Guide" style="width: 100%; height: auto; border-radius: 8px; display: block;">
+        </div>
+      </div>
+
+      <!-- Clear Step-by-Step Instructions -->
+      <div style="margin-top: 16px; text-align: left; background: rgba(0, 0, 0, 0.25); padding: 14px; border-radius: 12px; font-size: 13px; border: 1px solid var(--border-color); line-height: 1.6;">
+        <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">
+          <i class="fa-solid fa-circle-check" style="color: var(--accent-emerald);"></i> Exact Field Entries for Step 2 (Personal Information):
+        </div>
+        <div style="margin-bottom: 6px;">1. <strong>From where did you hear about Eureka! 2026 *</strong>: Select <strong style="color: var(--accent-cyan);">NEC</strong></div>
         <div>2. <strong>Referral ID *</strong>: Type <strong style="color: var(--accent-cyan);">NEC2621509</strong></div>
       </div>
+
+      <!-- Action Footer -->
       <div style="margin-top: 18px; display: flex; gap: 10px;">
-        <button type="button" class="btn-secondary" style="flex: 1;" onclick="closeEurekaGuideModal()">
-          Close Preview
+        <button type="button" class="btn-secondary" style="flex: 1; padding: 10px;" onclick="closeEurekaGuideModal()">
+          Close
         </button>
-        <a href="https://www.ecell.in/eureka/register" target="_blank" rel="noopener noreferrer" class="btn-primary" style="flex: 1.5; display: inline-flex; justify-content: center; align-items: center; gap: 6px; text-decoration: none;">
-          <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Eureka
+        <a href="https://www.ecell.in/eureka/register" target="_blank" rel="noopener noreferrer" class="btn-primary"
+          style="flex: 1.5; display: inline-flex; justify-content: center; align-items: center; gap: 8px; text-decoration: none; padding: 10px; font-weight: 600;">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Eureka Portal
         </a>
       </div>
+
     </div>
   </div>
 
