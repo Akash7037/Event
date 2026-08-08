@@ -996,15 +996,20 @@ textarea {
   top: 0;
   left: 0;
   width: 100vw;
+  width: 100%;
   height: 100vh;
-  background: rgba(20, 20, 19, 0.7);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  z-index: 1000;
+  height: 100dvh;
+  background: rgba(10, 15, 25, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 99999;
   display: none;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 16px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .modal-overlay.active {
@@ -1805,19 +1810,23 @@ textarea {
   top: 0;
   left: 0;
   width: 100vw;
+  width: 100%;
   height: 100vh;
-  background: rgba(10, 15, 25, 0.85);
+  height: 100dvh;
+  background: rgba(10, 15, 25, 0.88);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 999999;
+  z-index: 99999;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 16px;
+  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 16px 12px;
   box-sizing: border-box;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .modal-overlay.active {
@@ -1831,27 +1840,51 @@ textarea {
   border-radius: 20px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1);
   width: 100%;
-  max-width: 520px;
-  max-height: 90vh;
+  max-width: 640px;
+  max-height: 88vh;
+  max-height: 88dvh;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 24px;
-  transform: scale(0.92) translateY(20px);
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform: scale(0.94) translateY(12px);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   box-sizing: border-box;
+  margin: auto;
 }
 
 .modal-overlay.active .modal-container {
   transform: scale(1) translateY(0);
 }
 
+.modal-actions-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 18px;
+  flex-wrap: wrap;
+}
+
 @media (max-width: 640px) {
   .modal-overlay {
-    padding: 12px;
+    padding: 12px 8px;
   }
   .modal-container {
-    padding: 18px 14px;
+    padding: 18px 14px 24px;
     border-radius: 18px;
-    max-height: 94vh;
+    max-height: 88vh;
+    max-height: 88dvh;
+    width: 95vw;
+  }
+  .modal-actions-footer {
+    gap: 8px;
+  }
+  .modal-actions-footer button {
+    flex: 1 1 auto;
+    min-width: 90px;
+    justify-content: center;
+    padding: 10px 12px;
   }
 }
 
@@ -2025,15 +2058,16 @@ textarea {
   .modal-overlay {
     align-items: center !important;
     justify-content: center !important;
-    padding: 16px 12px !important;
+    padding: 12px 8px !important;
   }
   .modal-container {
-    max-width: 520px !important;
-    width: 94vw !important;
-    border-radius: 20px !important;
-    max-height: 90vh !important;
-    padding: 20px 16px !important;
-    transform: scale(0.92) !important;
+    max-width: 100% !important;
+    width: 95vw !important;
+    border-radius: 18px !important;
+    max-height: 88vh !important;
+    max-height: 88dvh !important;
+    padding: 18px 14px 28px !important;
+    transform: scale(0.94) !important;
     margin: auto !important;
   }
   .modal-overlay.active .modal-container {
@@ -2063,7 +2097,8 @@ textarea {
   gap: 12px;
   align-items: center;
   justify-content: center;
-  z-index: 999999;
+  z-index: 900;
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
 }
 
 .admin-icon-btn {
@@ -2097,4 +2132,20 @@ textarea {
   .admin-mobile-icon-bar {
     display: flex !important;
   }
+}
+
+/* Hide mobile navigation bar whenever any modal is active or body is modal-open */
+body.modal-open .admin-mobile-icon-bar,
+.modal-overlay.active ~ .admin-mobile-icon-bar,
+body:has(.modal-overlay.active) .admin-mobile-icon-bar,
+body:has(#team-details-modal.active) .admin-mobile-icon-bar,
+body:has(#reject-reason-modal.active) .admin-mobile-icon-bar,
+body:has(#edit-credentials-modal.active) .admin-mobile-icon-bar,
+body:has(#qr-scanner-modal.active) .admin-mobile-icon-bar,
+body:has(#doc-preview-modal.active) .admin-mobile-icon-bar,
+body:has(#image-lightbox-modal.active) .admin-mobile-icon-bar {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transform: translateX(-50%) translateY(60px) !important;
 }

@@ -694,6 +694,8 @@ async function openTeamDetailsModal(teamId) {
     `;
 
     document.getElementById('team-details-modal').classList.add('active');
+    document.body.classList.add('modal-open');
+    document.body.style.overflow = 'hidden';
 
   } catch (error) {
     console.error('Modal error:', error);
@@ -703,6 +705,10 @@ async function openTeamDetailsModal(teamId) {
 
 function closeTeamDetailsModal() {
   document.getElementById('team-details-modal').classList.remove('active');
+  if (!document.querySelector('.modal-overlay.active')) {
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+  }
   selectedTeamForAction = null;
 }
 
@@ -772,6 +778,7 @@ function openMediaPreview(fileUrl, titleStr, overrideType = null) {
   }
 
   modal.classList.add('active');
+  document.body.classList.add('modal-open');
   document.body.style.overflow = 'hidden';
 }
 
@@ -779,7 +786,10 @@ function closeMediaPreview() {
   const modal = document.getElementById('doc-preview-modal');
   if (modal) {
     modal.classList.remove('active');
-    document.body.style.overflow = '';
+    if (!document.querySelector('.modal-overlay.active')) {
+      document.body.classList.remove('modal-open');
+      document.body.style.overflow = '';
+    }
   }
 }
 
@@ -933,11 +943,17 @@ async function handleApproveTeam() {
 // Rejection Modal Handlers
 function openRejectReasonModal() {
   document.getElementById('reject-reason-modal').classList.add('active');
+  document.body.classList.add('modal-open');
+  document.body.style.overflow = 'hidden';
 }
 
 function closeRejectReasonModal() {
   document.getElementById('reject-reason-modal').classList.remove('active');
   document.getElementById('rejection-reason-text').value = '';
+  if (!document.querySelector('.modal-overlay.active')) {
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+  }
 }
 
 async function confirmRejectTeam() {
@@ -1039,6 +1055,8 @@ function openEditCredentialsModal() {
   if (modal) {
     modal.classList.add('active');
     modal.style.display = 'flex';
+    document.body.classList.add('modal-open');
+    document.body.style.overflow = 'hidden';
     document.getElementById('edit-credentials-form').reset();
 
     const savedUser = localStorage.getItem('adminUser') || 'admin';
@@ -1072,6 +1090,10 @@ function closeEditCredentialsModal() {
   if (modal) {
     modal.classList.remove('active');
     modal.style.display = 'none';
+    if (!document.querySelector('.modal-overlay.active')) {
+      document.body.classList.remove('modal-open');
+      document.body.style.overflow = '';
+    }
   }
 }
 
@@ -1271,6 +1293,8 @@ function openImageLightbox(fileUrl, title = 'Eureka Screenshot Proof') {
 
   modal.classList.add('active');
   modal.style.display = 'flex';
+  document.body.classList.add('modal-open');
+  document.body.style.overflow = 'hidden';
 }
 
 function closeImageLightbox(event) {
@@ -1278,6 +1302,10 @@ function closeImageLightbox(event) {
   if (modal) {
     modal.classList.remove('active');
     modal.style.display = 'none';
+    if (!document.querySelector('.modal-overlay.active')) {
+      document.body.classList.remove('modal-open');
+      document.body.style.overflow = '';
+    }
   }
 }
 
@@ -1324,6 +1352,8 @@ function openQrScannerModal() {
   if (!modal) return;
 
   modal.classList.add('active');
+  document.body.classList.add('modal-open');
+  document.body.style.overflow = 'hidden';
   if (resultBox) resultBox.style.display = 'none';
 
   switchScannerTab('camera');
@@ -1333,6 +1363,10 @@ function closeQrScannerModal() {
   const modal = document.getElementById('qr-scanner-modal');
   if (modal) {
     modal.classList.remove('active');
+    if (!document.querySelector('.modal-overlay.active')) {
+      document.body.classList.remove('modal-open');
+      document.body.style.overflow = '';
+    }
   }
   stopLiveQrScanner();
 }
