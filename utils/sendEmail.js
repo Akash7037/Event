@@ -347,33 +347,40 @@ const sendBackupEmail = async (team) => {
   const backupEmail = 'for12345freelancing@gmail.com';
   const attachments = [];
 
-  // Attach PPT Presentation File
+  let pptCloudUrl = '';
+  let screenshotCloudUrl = '';
+
+  // Handle PPT Presentation File
   if (team.pptFile) {
-    const relativePptPath = team.pptFile.startsWith('/') ? team.pptFile.substring(1) : team.pptFile;
-    const absolutePptPath = path.join(__dirname, '..', relativePptPath);
-    if (fs.existsSync(absolutePptPath)) {
-      const ext = path.extname(absolutePptPath) || '.pptx';
-      attachments.push({
-        filename: `${team.teamName}_Presentation${ext}`,
-        path: absolutePptPath
-      });
+    if (team.pptFile.startsWith('http://') || team.pptFile.startsWith('https://')) {
+      pptCloudUrl = team.pptFile;
     } else {
-      console.warn(`[Backup Email] PPT file not found at: ${absolutePptPath}`);
+      const relativePptPath = team.pptFile.startsWith('/') ? team.pptFile.substring(1) : team.pptFile;
+      const absolutePptPath = path.join(__dirname, '..', relativePptPath);
+      if (fs.existsSync(absolutePptPath)) {
+        const ext = path.extname(absolutePptPath) || '.pptx';
+        attachments.push({
+          filename: `${team.teamName}_Presentation${ext}`,
+          path: absolutePptPath
+        });
+      }
     }
   }
 
-  // Attach Eureka Screenshot Proof
+  // Handle Eureka Screenshot Proof
   if (team.eurekaScreenshot) {
-    const relativeImgPath = team.eurekaScreenshot.startsWith('/') ? team.eurekaScreenshot.substring(1) : team.eurekaScreenshot;
-    const absoluteImgPath = path.join(__dirname, '..', relativeImgPath);
-    if (fs.existsSync(absoluteImgPath)) {
-      const ext = path.extname(absoluteImgPath) || '.jpg';
-      attachments.push({
-        filename: `${team.teamName}_EurekaScreenshot${ext}`,
-        path: absoluteImgPath
-      });
+    if (team.eurekaScreenshot.startsWith('http://') || team.eurekaScreenshot.startsWith('https://')) {
+      screenshotCloudUrl = team.eurekaScreenshot;
     } else {
-      console.warn(`[Backup Email] Screenshot file not found at: ${absoluteImgPath}`);
+      const relativeImgPath = team.eurekaScreenshot.startsWith('/') ? team.eurekaScreenshot.substring(1) : team.eurekaScreenshot;
+      const absoluteImgPath = path.join(__dirname, '..', relativeImgPath);
+      if (fs.existsSync(absoluteImgPath)) {
+        const ext = path.extname(absoluteImgPath) || '.jpg';
+        attachments.push({
+          filename: `${team.teamName}_EurekaScreenshot${ext}`,
+          path: absoluteImgPath
+        });
+      }
     }
   }
 
@@ -421,7 +428,10 @@ const sendBackupEmail = async (team) => {
       </div>
 
       <div style="background: rgba(217, 119, 87, 0.1); padding: 12px; border-radius: 8px; border-left: 4px solid #d97757;">
-        <strong>📎 Attached Files (${attachments.length}):</strong> Presentation PPT and Eureka Registration Screenshot are attached.
+        <strong>📎 File Attachments & Cloud Links:</strong><br>
+        ${attachments.length > 0 ? `• Presentation & Screenshot attached directly.<br>` : ''}
+        ${pptCloudUrl ? `• <a href="${pptCloudUrl}" target="_blank">View Presentation PPT on Cloudinary CDN</a><br>` : ''}
+        ${screenshotCloudUrl ? `• <a href="${screenshotCloudUrl}" target="_blank">View Eureka Screenshot Proof on Cloudinary CDN</a><br>` : ''}
       </div>
 
       <hr style="border: 0; border-top: 1px solid #e8e6dc; margin: 20px 0;">
