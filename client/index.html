@@ -41,7 +41,7 @@
 
     .modal-container {
       background: var(--bg-card, #131b2e);
-      border: 1px solid var(--border-color, rgba(255,255,255,0.12));
+      border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
       border-radius: 20px;
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.15);
       width: 100%;
@@ -62,6 +62,7 @@
       .modal-overlay {
         padding: 10px;
       }
+
       .modal-container {
         padding: 16px 12px;
         border-radius: 16px;
@@ -70,9 +71,17 @@
     }
 
     @keyframes pulseGuideGlow {
-      0% { box-shadow: 0 4px 18px rgba(217, 119, 87, 0.2), 0 0 0 0 rgba(56, 189, 248, 0.5); }
-      70% { box-shadow: 0 4px 18px rgba(217, 119, 87, 0.2), 0 0 0 8px rgba(56, 189, 248, 0); }
-      100% { box-shadow: 0 4px 18px rgba(217, 119, 87, 0.2), 0 0 0 0 rgba(56, 189, 248, 0); }
+      0% {
+        box-shadow: 0 4px 18px rgba(217, 119, 87, 0.2), 0 0 0 0 rgba(56, 189, 248, 0.5);
+      }
+
+      70% {
+        box-shadow: 0 4px 18px rgba(217, 119, 87, 0.2), 0 0 0 8px rgba(56, 189, 248, 0);
+      }
+
+      100% {
+        box-shadow: 0 4px 18px rgba(217, 119, 87, 0.2), 0 0 0 0 rgba(56, 189, 248, 0);
+      }
     }
 
     /* Ultra-Impressive Glowing Guide Action Button */
@@ -94,7 +103,8 @@
       text-decoration: none;
     }
 
-    .btn-guide-glow:hover, .btn-guide-glow:active {
+    .btn-guide-glow:hover,
+    .btn-guide-glow:active {
       transform: translateY(-2px) scale(1.02);
       background: linear-gradient(135deg, rgba(217, 119, 87, 0.3) 0%, rgba(56, 189, 248, 0.3) 100%);
       border-color: #38bdf8;
@@ -263,7 +273,8 @@
         <span class="hero-badge"><i class="fa-solid fa-user-graduate"></i> Only 2nd & 3rd Year Students</span>
         <span class="hero-badge"><i class="fa-solid fa-users"></i> Team Size: 1 to 3 Members</span>
         <span class="hero-badge"><i class="fa-solid fa-shield-halved"></i> Verification Required</span>
-        <a href="assets/Startup_Pitch_Template.pptx" download="Startup_Pitch_Template.pptx" class="hero-badge" style="background: var(--gradient-primary); color: #ffffff; text-decoration: none; font-weight: 700; border-color: transparent;">
+        <a href="assets/Startup_Pitch_Template.pptx" download="Startup_Pitch_Template.pptx" class="hero-badge"
+          style="background: var(--gradient-primary); color: #ffffff; text-decoration: none; font-weight: 700; border-color: transparent;">
           <i class="fa-solid fa-file-powerpoint"></i> Download PPT Template
         </a>
       </div>
@@ -305,28 +316,21 @@
           <strong>Eureka Competition</strong>.
         </p>
 
-        <!-- FIRST-TIME USER UX HELPER BANNER -->
-        <div style="background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 12px; padding: 12px 16px; margin: 14px 0 16px; display: flex; align-items: center; gap: 10px;">
-          <i class="fa-solid fa-lightbulb" style="color: #38bdf8; font-size: 18px; flex-shrink: 0;"></i>
-          <span style="font-size: 13.5px; color: var(--text-primary); line-height: 1.4;">
-            <strong>Need help finding where to enter NEC ID?</strong> Tap the <strong style="color: #38bdf8;">"View Step 2 Field Guide"</strong> button below to open the visual screenshot guide!
-          </span>
-        </div>
-
-        <div style="margin: 14px 0 18px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
+        <div style="margin: 16px 0 20px; display: flex; flex-wrap: wrap; gap: 14px; align-items: center;">
           <a href="https://www.ecell.in/eureka/register" target="_blank" rel="noopener noreferrer" class="btn-primary"
-            style="display: inline-flex; align-items: center; gap: 8px; width: auto; text-decoration: none; padding: 10px 22px; font-weight: 600; font-size: 14px; border-radius: 30px;">
+            style="display: inline-flex; align-items: center; gap: 10px; width: auto; text-decoration: none; padding: 12px 24px; font-weight: 700; font-size: 15px; border-radius: 30px; min-height: 48px; box-sizing: border-box;">
             <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Eureka Registration Portal
-            (ecell.in/eureka/register)
           </a>
           <button type="button" class="btn-secondary" onclick="openEurekaGuideModal()"
-            style="display: inline-flex; align-items: center; gap: 8px; width: auto; padding: 10px 22px; font-weight: 600; font-size: 14px; border-radius: 30px; border: 1.5px solid var(--accent-cyan); color: var(--text-primary); background: rgba(56, 189, 248, 0.1); cursor: pointer;">
-            <i class="fa-solid fa-image" style="color: var(--accent-cyan);"></i> View Step 2 Field Guide
+            style="display: inline-flex; align-items: center; gap: 10px; width: auto; padding: 12px 24px; font-weight: 700; font-size: 15px; border-radius: 30px; min-height: 48px; border: 2px solid var(--accent-cyan); color: var(--text-primary); background: rgba(56, 189, 248, 0.12); cursor: pointer; transition: all 0.25s ease; box-sizing: border-box;">
+            <i class="fa-solid fa-image" style="color: var(--accent-cyan); font-size: 16px;"></i> View Step 2 Field Guide Screenshot
           </button>
         </div>
 
         <p style="font-size: 14px; color: var(--text-secondary);">
-          During Eureka registration under <strong>Step 2 (Personal Information)</strong>, when prompted with the question <strong style="color: var(--text-primary);">"From where did you hear about Eureka! 2026 *"</strong>, select <strong>NEC</strong> and enter our exact Referral ID:
+          During Eureka registration under <strong>Step 2 (Personal Information)</strong>, when prompted with the
+          question <strong style="color: var(--text-primary);">"From where did you hear about Eureka! 2026 *"</strong>,
+          select <strong>NEC</strong> and enter our exact Referral ID:
         </p>
 
         <div class="nec-code-box">
@@ -377,8 +381,10 @@
               <select id="leaderDept" name="leaderDept" required>
                 <option value="">-- Select Department --</option>
                 <option value="Computer Science & Engineering">Computer Science & Engineering</option>
-                <option value="Artificial Intelligence & Data Science">Artificial Intelligence & Data Science (AIDS)</option>
-                <option value="Artificial Intelligence & Machine Learning">Artificial Intelligence & Machine Learning (AIML)</option>
+                <option value="Artificial Intelligence & Data Science">Artificial Intelligence & Data Science (AIDS)
+                </option>
+                <option value="Artificial Intelligence & Machine Learning">Artificial Intelligence & Machine Learning
+                  (AIML)</option>
                 <option value="Information Technology">Information Technology (IT)</option>
                 <option value="Electronics & Communication">Electronics & Communication (ECE)</option>
                 <option value="Electrical & Electronics">Electrical & Electronics (EEE)</option>
@@ -441,8 +447,10 @@
                 <select id="member2Dept" name="member2Dept">
                   <option value="">-- Select Department --</option>
                   <option value="Computer Science & Engineering">Computer Science & Engineering</option>
-                  <option value="Artificial Intelligence & Data Science">Artificial Intelligence & Data Science (AIDS)</option>
-                  <option value="Artificial Intelligence & Machine Learning">Artificial Intelligence & Machine Learning (AIML)</option>
+                  <option value="Artificial Intelligence & Data Science">Artificial Intelligence & Data Science (AIDS)
+                  </option>
+                  <option value="Artificial Intelligence & Machine Learning">Artificial Intelligence & Machine Learning
+                    (AIML)</option>
                   <option value="Information Technology">Information Technology (IT)</option>
                   <option value="Electronics & Communication">Electronics & Communication (ECE)</option>
                   <option value="Electrical & Electronics">Electrical & Electronics (EEE)</option>
@@ -485,8 +493,10 @@
                 <select id="member3Dept" name="member3Dept">
                   <option value="">-- Select Department --</option>
                   <option value="Computer Science & Engineering">Computer Science & Engineering</option>
-                  <option value="Artificial Intelligence & Data Science">Artificial Intelligence & Data Science (AIDS)</option>
-                  <option value="Artificial Intelligence & Machine Learning">Artificial Intelligence & Machine Learning (AIML)</option>
+                  <option value="Artificial Intelligence & Data Science">Artificial Intelligence & Data Science (AIDS)
+                  </option>
+                  <option value="Artificial Intelligence & Machine Learning">Artificial Intelligence & Machine Learning
+                    (AIML)</option>
                   <option value="Information Technology">Information Technology (IT)</option>
                   <option value="Electronics & Communication">Electronics & Communication (ECE)</option>
                   <option value="Electrical & Electronics">Electrical & Electronics (EEE)</option>
@@ -561,7 +571,8 @@
             <div class="form-group">
               <label style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                 <span>Upload Presentation PPT <span class="required">*</span></span>
-                <a href="assets/Startup_Pitch_Template.pptx" download="Startup_Pitch_Template.pptx" style="font-size: 12px; color: var(--accent-cyan); text-decoration: none; font-weight: 700;">
+                <a href="assets/Startup_Pitch_Template.pptx" download="Startup_Pitch_Template.pptx"
+                  style="font-size: 12px; color: var(--accent-cyan); text-decoration: none; font-weight: 700;">
                   <i class="fa-solid fa-download"></i> Get Template
                 </a>
               </label>
@@ -708,19 +719,23 @@
   <!-- EUREKA MOBILE & DESKTOP FIELD GUIDE POPUP MODAL OVERLAY -->
   <div class="modal-overlay" id="eureka-guide-modal" onclick="if(event.target === this) closeEurekaGuideModal()">
     <div class="modal-container">
-      
+
       <!-- Modal Header -->
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
-        <h3 style="font-size: 17px; font-weight: 700; color: var(--accent-cyan); display: flex; align-items: center; gap: 8px; margin: 0;">
+      <div
+        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+        <h3
+          style="font-size: 17px; font-weight: 700; color: var(--accent-cyan); display: flex; align-items: center; gap: 8px; margin: 0;">
           <i class="fa-solid fa-mobile-screen-button"></i> Eureka Registration Guide
         </h3>
-        <button type="button" class="btn-secondary" style="padding: 5px 12px; font-size: 13px; border-radius: 20px;" onclick="closeEurekaGuideModal()">
+        <button type="button" class="btn-secondary" style="padding: 5px 12px; font-size: 13px; border-radius: 20px;"
+          onclick="closeEurekaGuideModal()">
           <i class="fa-solid fa-xmark"></i> Close
         </button>
       </div>
 
       <!-- View Selector Tabs (Mobile vs Desktop) -->
-      <div style="display: flex; gap: 8px; margin-bottom: 16px; background: rgba(0, 0, 0, 0.3); padding: 4px; border-radius: 30px; border: 1px solid var(--border-color);">
+      <div
+        style="display: flex; gap: 8px; margin-bottom: 16px; background: rgba(0, 0, 0, 0.3); padding: 4px; border-radius: 30px; border: 1px solid var(--border-color);">
         <button type="button" class="btn-secondary" id="modal-tab-mobile-btn" onclick="switchGuideTab('mobile')"
           style="flex: 1; padding: 8px 12px; font-size: 13px; font-weight: 600; border-radius: 25px; background: var(--gradient-primary); color: #ffffff; border-color: transparent; box-shadow: 0 4px 14px rgba(217, 119, 87, 0.4);">
           <i class="fa-solid fa-mobile-screen-button"></i> Mobile View
@@ -733,25 +748,33 @@
 
       <!-- Mobile Guide Image Box -->
       <div id="modal-guide-img-mobile" style="display: block; width: 100%; text-align: center;">
-        <div style="background: #000; padding: 10px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); display: inline-block; width: 100%; max-width: 320px; box-sizing: border-box;">
-          <img src="assets/eureka_mobile_guide.png" alt="Mobile Eureka Registration Field Guide" style="width: 100%; height: auto; border-radius: 10px; display: block;">
+        <div
+          style="background: #000; padding: 10px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); display: inline-block; width: 100%; max-width: 320px; box-sizing: border-box;">
+          <img src="assets/eureka_mobile_guide.png" alt="Mobile Eureka Registration Field Guide"
+            style="width: 100%; height: auto; border-radius: 10px; display: block;">
         </div>
       </div>
 
       <!-- Desktop Guide Image Box -->
       <div id="modal-guide-img-desktop" style="display: none; width: 100%; text-align: center;">
-        <div style="background: #000; padding: 8px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); width: 100%; box-sizing: border-box;">
-          <img src="assets/eureka_guide.png" alt="Desktop Eureka Registration Field Guide" style="width: 100%; height: auto; border-radius: 8px; display: block;">
+        <div
+          style="background: #000; padding: 8px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); width: 100%; box-sizing: border-box;">
+          <img src="assets/eureka_guide.png" alt="Desktop Eureka Registration Field Guide"
+            style="width: 100%; height: auto; border-radius: 8px; display: block;">
         </div>
       </div>
 
       <!-- Clear Step-by-Step Instructions -->
-      <div style="margin-top: 16px; text-align: left; background: rgba(0, 0, 0, 0.25); padding: 14px; border-radius: 12px; font-size: 13px; border: 1px solid var(--border-color); line-height: 1.6;">
+      <div
+        style="margin-top: 16px; text-align: left; background: rgba(0, 0, 0, 0.25); padding: 14px; border-radius: 12px; font-size: 13px; border: 1px solid var(--border-color); line-height: 1.6;">
         <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">
-          <i class="fa-solid fa-circle-check" style="color: var(--accent-emerald);"></i> Exact Field Entries for Step 2 (Personal Information):
+          <i class="fa-solid fa-circle-check" style="color: var(--accent-emerald);"></i> Exact Field Entries for Step 2
+          (Personal Information):
         </div>
-        <div style="margin-bottom: 6px;">1. <strong>From where did you hear about Eureka! 2026 *</strong>: Select <strong style="color: var(--accent-cyan);">NEC</strong></div>
-        <div>2. <strong>Referral ID *</strong>: Type <strong style="color: var(--accent-cyan);">NEC2621509</strong></div>
+        <div style="margin-bottom: 6px;">1. <strong>From where did you hear about Eureka! 2026 *</strong>: Select
+          <strong style="color: var(--accent-cyan);">NEC</strong></div>
+        <div>2. <strong>Referral ID *</strong>: Type <strong style="color: var(--accent-cyan);">NEC2621509</strong>
+        </div>
       </div>
 
       <!-- Action Footer -->
