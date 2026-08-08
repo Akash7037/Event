@@ -116,7 +116,7 @@ const teamSchema = new mongoose.Schema({
 });
 
 // Compound and Single MongoDB Indexes for Performance Tuning
-teamSchema.index({ 'leader.registerNumber': 1 });
+// Note: leader.registerNumber index is created automatically via unique: true
 teamSchema.index({ 'leader.email': 1 });
 teamSchema.index({ status: 1, submittedAt: -1 });
 teamSchema.index({ checkedIn: 1 });
