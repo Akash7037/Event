@@ -98,17 +98,40 @@ exports.registerTeam = async (req, res, next) => {
       ? req.files.eurekaScreenshot[0].cloudinaryUrl
       : ('/uploads/screenshots/' + req.files.eurekaScreenshot[0].filename);
     const formattedLeaderRegNo = leaderRegNo.trim().toUpperCase();
+    const formattedLeaderEmail = leaderEmail.trim().toLowerCase();
 
-    // Check duplicate leader register number
+    // Check duplicate leader register number or duplicate leader email
     if (getIsConnected()) {
-      const existingTeam = await Team.findOne({ 'leader.registerNumber': formattedLeaderRegNo });
+      const existingTeam = await Team.findOne({
+        $or: [
+          { 'leader.registerNumber': formattedLeaderRegNo },
+          { 'leader.email': formattedLeaderEmail }
+        ]
+      });
+
       if (existingTeam) {
-        return res.status(400).json({ success: false, message: `A team with Leader Register Number (${formattedLeaderRegNo}) has already registered!` });
+        if (existingTeam.leader && existingTeam.leader.registerNumber === formattedLeaderRegNo) {
+          return res.status(400).json({ success: false, message: `A team with Leader Register Number (${formattedLeaderRegNo}) has already registered!` });
+        }
+        if (existingTeam.leader && existingTeam.leader.email && existingTeam.leader.email.toLowerCase() === formattedLeaderEmail) {
+          return res.status(400).json({ success: false, message: `A team has already registered using Leader Email (${formattedLeaderEmail})! Each Gmail / Email address can only register once.` });
+        }
       }
     } else {
-      const existingTeam = inMemoryTeams.find(t => t.leader.registerNumber === formattedLeaderRegNo);
+      const existingTeam = inMemoryTeams.find(t =>
+        t.leader && (
+          t.leader.registerNumber === formattedLeaderRegNo ||
+          (t.leader.email && t.leader.email.toLowerCase() === formattedLeaderEmail)
+        )
+      );
+
       if (existingTeam) {
-        return res.status(400).json({ success: false, message: `A team with Leader Register Number (${formattedLeaderRegNo}) has already registered!` });
+        if (existingTeam.leader && existingTeam.leader.registerNumber === formattedLeaderRegNo) {
+          return res.status(400).json({ success: false, message: `A team with Leader Register Number (${formattedLeaderRegNo}) has already registered!` });
+        }
+        if (existingTeam.leader && existingTeam.leader.email && existingTeam.leader.email.toLowerCase() === formattedLeaderEmail) {
+          return res.status(400).json({ success: false, message: `A team has already registered using Leader Email (${formattedLeaderEmail})! Each Gmail / Email address can only register once.` });
+        }
       }
     }
 
