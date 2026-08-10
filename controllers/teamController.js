@@ -315,13 +315,16 @@ exports.getTeamStatus = async (req, res, next) => {
 // @route   GET /api/teams/template
 // @access  Public
 exports.downloadPptTemplate = (req, res) => {
-  const rootTemplatePath = path.join(__dirname, '../Template.pptx');
+  const rootOfficialTemplatePath = path.join(__dirname, '../Official-eureka-template.pptx');
+  const assetOfficialTemplatePath = path.join(__dirname, '../client/assets/Official-eureka-template.pptx');
   const assetTemplatePath = path.join(__dirname, '../client/assets/Startup_Pitch_Template.pptx');
 
-  if (fs.existsSync(rootTemplatePath)) {
-    return res.download(rootTemplatePath, 'Template.pptx');
+  if (fs.existsSync(rootOfficialTemplatePath)) {
+    return res.download(rootOfficialTemplatePath, 'Official-eureka-template.pptx');
+  } else if (fs.existsSync(assetOfficialTemplatePath)) {
+    return res.download(assetOfficialTemplatePath, 'Official-eureka-template.pptx');
   } else if (fs.existsSync(assetTemplatePath)) {
-    return res.download(assetTemplatePath, 'Template.pptx');
+    return res.download(assetTemplatePath, 'Official-eureka-template.pptx');
   } else {
     res.status(404).json({ success: false, message: 'PPT Template file not found.' });
   }
