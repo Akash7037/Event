@@ -305,28 +305,12 @@ const sendViaSMTP = async ({ to, fromName, fromEmail, subject, html, attachments
     attachments
   };
 
-  // If using default Gmail account, use Nodemailer's built-in 'gmail' service transport
-  if (smtpHost === 'smtp.gmail.com' || smtpUser.includes('gmail.com')) {
-    try {
-      console.log(`[Email Engine] Sending via Nodemailer Gmail Service to ${to}...`);
-      const gmailTransporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: { user: smtpUser, pass: smtpPass },
-        tls: { rejectUnauthorized: false }
-      });
-      const info = await gmailTransporter.sendMail(mailOptions);
-      console.log(`[Email Sent - Gmail Service] ID: ${info.messageId} to ${to}`);
-      return { success: true, info, provider: 'gmail-service' };
-    } catch (gmailErr) {
-      console.warn(`[Gmail Service Warning] (${gmailErr.message}). Falling back to custom port transporter...`);
-    }
-  }
-
   const createTransporter = (targetPort) => {
     return nodemailer.createTransport({
       host: smtpHost,
       port: targetPort,
       secure: targetPort === 465,
+      family: 4, // Force IPv4 to prevent IPv6 DNS connection hangs on Render/Vercel cloud containers
       auth: { user: smtpUser, pass: smtpPass },
       tls: { rejectUnauthorized: false },
       connectionTimeout: 15000,
@@ -336,7 +320,7 @@ const sendViaSMTP = async ({ to, fromName, fromEmail, subject, html, attachments
   };
 
   try {
-    console.log(`[Email Engine] Sending via Nodemailer SMTP (${smtpHost}:${port}) to ${to}...`);
+    console.log(`[Email Engine] Sending via Nodemailer Direct IPv4 SMTP (${smtpHost}:${port}) to ${to}...`);
     const transporter = createTransporter(port);
     const info = await transporter.sendMail(mailOptions);
     console.log(`[Email Sent - SMTP Port ${port}] ID: ${info.messageId} to ${to}`);
