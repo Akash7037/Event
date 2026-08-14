@@ -205,7 +205,7 @@ async function handleAdminLogin(event) {
   event.preventDefault();
 
   const usernameOrEmail = document.getElementById('adminUsername').value.trim();
-  const password = document.getElementById('adminPassword').value;
+  const password = document.getElementById('adminPassword').value.trim();
   const submitBtn = document.getElementById('login-submit-btn');
 
   if (!usernameOrEmail || !password) {
