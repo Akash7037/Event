@@ -11,20 +11,23 @@ dotenv.config();
 // Initialize Express app
 const app = express();
 
-// Connect MongoDB
+// Connect MongoDB asynchronously
 connectDB();
 
-// Auto seed default admin if none exists
+// Auto seed default admin if connected and none exists
 const autoSeedAdmin = async () => {
   try {
-    const adminCount = await Admin.countDocuments();
-    if (adminCount === 0) {
-      await Admin.create({
-        username: 'admin',
-        email: 'admin@ecell.edu',
-        password: 'admin123'
-      });
-      console.log('[AutoSeed] Default Admin account created (Username: admin | Email: admin@ecell.edu | Pass: admin123)');
+    const { getIsConnected } = require('./config/db');
+    if (getIsConnected()) {
+      const adminCount = await Admin.countDocuments();
+      if (adminCount === 0) {
+        await Admin.create({
+          username: 'admin',
+          email: 'admin@ecell.edu',
+          password: 'admin123'
+        });
+        console.log('[AutoSeed] Default Admin account created (Username: admin | Email: admin@ecell.edu | Pass: admin123)');
+      }
     }
   } catch (err) {
     console.warn('[AutoSeed Warning] Could not auto-seed admin:', err.message);
