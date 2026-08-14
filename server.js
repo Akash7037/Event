@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
+const os = require('os');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const errorHandler = require('./middleware/errorMiddleware');
@@ -72,7 +74,6 @@ app.use(express.static(path.join(__dirname, 'client'), {
 }));
 
 // Serve uploads statically (both local project uploads and serverless temp uploads)
-const os = require('os');
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 const tmpUploadsDir = path.join(os.tmpdir(), 'uploads');
 if (fs.existsSync(tmpUploadsDir)) {
