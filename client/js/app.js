@@ -507,9 +507,15 @@ async function handleRegistrationSubmit(event) {
       body: formData
     });
 
-    const result = await response.json();
+    let result;
+    try {
+      result = await response.json();
+    } catch (parseErr) {
+      const rawText = await response.text().catch(() => '');
+      throw new Error(rawText || `Server responded with status ${response.status}`);
+    }
 
-    if (result.success) {
+    if (result && result.success) {
       document.getElementById('success-modal-message').textContent =
         `Team "${result.data.teamName}" (Leader: ${result.data.leaderName}) registration has been recorded successfully. Status is Pending Verification.`;
       document.getElementById('success-modal').classList.add('active');
@@ -521,11 +527,11 @@ async function handleRegistrationSubmit(event) {
       clearFormDraft();
       showToast('Registration submitted successfully!', 'success');
     } else {
-      showToast(result.message || 'Submission failed. Please check form fields.', 'error');
+      showToast((result && result.message) || 'Submission failed. Please check form fields.', 'error');
     }
   } catch (error) {
     console.error('Submission error:', error);
-    showToast('Network error while submitting registration. Please try again.', 'error');
+    showToast(error.message || 'Error submitting registration. Please try again.', 'error');
   } finally {
     submitBtn.disabled = false;
     submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Submit Registration`;

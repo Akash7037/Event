@@ -3,7 +3,11 @@ const path = require('path');
 const fs = require('fs');
 const { getIsConnected } = require('../config/db');
 
-const memoryBackupPath = path.join(__dirname, '../uploads/in_memory_teams_backup.json');
+const os = require('os');
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NOW_REGION);
+const memoryBackupPath = isServerless
+  ? path.join(os.tmpdir(), 'in_memory_teams_backup.json')
+  : path.join(__dirname, '../uploads/in_memory_teams_backup.json');
 
 // In-Memory Fallback Storage with Auto JSON Disk Persistence
 const inMemoryTeams = [];

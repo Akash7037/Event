@@ -68,8 +68,13 @@ app.use(express.static(path.join(__dirname, 'client'), {
   }
 }));
 
-// Serve uploads statically
+// Serve uploads statically (both local project uploads and serverless temp uploads)
+const os = require('os');
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+const tmpUploadsDir = path.join(os.tmpdir(), 'uploads');
+if (fs.existsSync(tmpUploadsDir)) {
+  app.use('/uploads', express.static(tmpUploadsDir));
+}
 
 // Health Check & Render Keep-Alive Endpoints (Zero-delay startup)
 app.get(['/api/health', '/api/ping'], (req, res) => {
@@ -106,27 +111,31 @@ app.get('*', (req, res) => {
 // Error handling middleware
 app.use(errorHandler);
 
+module.exports = app;
+
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`====================================================`);
-  console.log(`🚀 Startup Pitching Competition Server running on port ${PORT}`);
-  console.log(`🌐 Student Portal: http://localhost:${PORT}`);
-  console.log(`🔐 E-Cell Portal:  http://localhost:${PORT}/ecell-portal`);
-  console.log(`====================================================`);
+if (require.main === module || (!process.env.VERCEL && !process.env.AWS_LAMBDA_FUNCTION_NAME)) {
+  app.listen(PORT, () => {
+    console.log(`====================================================`);
+    console.log(`🚀 Startup Pitching Competition Server running on port ${PORT}`);
+    console.log(`🌐 Student Portal: http://localhost:${PORT}`);
+    console.log(`🔐 E-Cell Portal:  http://localhost:${PORT}/ecell-portal`);
+    console.log(`====================================================`);
 
-  // Render / Cloud Hosting Self-Ping Keep-Alive (runs every 10 mins to eliminate cold starts)
-  const serverUrl = process.env.RENDER_EXTERNAL_URL || process.env.SERVER_URL;
-  if (serverUrl) {
-    setInterval(() => {
-      try {
-        const http = serverUrl.startsWith('https') ? require('https') : require('http');
-        http.get(`${serverUrl}/api/ping`, (res) => {
-          console.log(`[KeepAlive] Pinged ${serverUrl}/api/ping - Status: ${res.statusCode}`);
-        }).on('error', (err) => console.warn('[KeepAlive Warning]', err.message));
-      } catch (e) {
-        // ignore
-      }
-    }, 10 * 60 * 1000);
-  }
-});
+    // Render / Cloud Hosting Self-Ping Keep-Alive (runs every 10 mins to eliminate cold starts)
+    const serverUrl = process.env.RENDER_EXTERNAL_URL || process.env.SERVER_URL;
+    if (serverUrl) {
+      setInterval(() => {
+        try {
+          const http = serverUrl.startsWith('https') ? require('https') : require('http');
+          http.get(`${serverUrl}/api/ping`, (res) => {
+            console.log(`[KeepAlive] Pinged ${serverUrl}/api/ping - Status: ${res.statusCode}`);
+          }).on('error', (err) => console.warn('[KeepAlive Warning]', err.message));
+        } catch (e) {
+          // ignore
+        }
+      }, 10 * 60 * 1000);
+    }
+  });
+}
