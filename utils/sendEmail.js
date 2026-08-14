@@ -315,9 +315,9 @@ const sendViaSMTP = async ({ to, fromName, fromEmail, subject, html, attachments
       secure: targetPort === 465, // SSL for 465, TLS for 587
       auth: { user: smtpUser, pass: smtpPass },
       tls: { rejectUnauthorized: false },
-      connectionTimeout: 8000,
-      greetingTimeout: 8000,
-      socketTimeout: 10000
+      connectionTimeout: 15000,
+      greetingTimeout: 15000,
+      socketTimeout: 20000
     });
   };
 
